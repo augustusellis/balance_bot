@@ -34,6 +34,7 @@ class Webcam:
         self.stopped = True
 
     def fps_start(self):
+        self.num_frames = 0
         self.start_time = time.time()
         return self
 
@@ -41,7 +42,7 @@ class Webcam:
         self.end_time = time.time()
 
     def fps_update(self):
-        self.numFrames += 1
+        self.num_frames += 1
 
     def fps(self):
-        return self.numFrames/(self.end_time-self.start_time)
+        return self.num_frames/(self.end_time-self.start_time)
