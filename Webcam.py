@@ -24,6 +24,8 @@ class Webcam:
         # Indefinitely loop until thread is stopped
         while True:
             if self.stopped:
+                self.stream.release()
+                cv2.destroyAllWindows()
                 return
             (self.grabbed, self.frame) = self.stream.read()
 

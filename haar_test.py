@@ -21,7 +21,7 @@ while True:
         #eyes = eye_cascade.detectMultiScale(roi_gray)
 
 
-    #cv2.imshow('img',img)
+    cv2.imshow('img',img)
 
     wc.fps_update()
     if wc.num_frames == 60:
