@@ -9,7 +9,9 @@ Required Pins:
 	Pin 5 - I2C.1 SCL
 	Pin 6 - Ground
 
-Connect VIO to 3.3 V to enable
+Connect VIO to 3.3 V to enable.
+
+Remember - "pinout" will give raspberry pi pinout diagram.
 
 Detect any connected I2C devices:
 $ i2cdetect -y 1
