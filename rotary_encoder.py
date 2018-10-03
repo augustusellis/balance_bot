@@ -83,8 +83,24 @@ class decoder:
              |         |         |         |
          ----+         +---------+         +---------+  1
       """
+      a_prev = self.levA
+      b_prev = self.levB
+
       if gpio == self.gpioA:
-          # Need to fix direction logic here
+          self.lastGpio = self.gpioA
+          self.levA = level
+      else:
+          self.lastGpio = self.gpioB
+          self.levB = level
+
+      if (not self.levA and not b_prev) or (self.levA and b_prev):
+          self.dir = 1
+      else:
+          self.dir = -1
+
+      self.callback(self.dir)
+    '''
+      # Need to fix direction logic here
           if self.lastGpio == self.gpioA:
               self.callback(-1)
           else:
@@ -97,7 +113,7 @@ class decoder:
           else:
               self.callback(1)
               self.lastGpio = gpio
-
+    '''
 """ Previous code:
       if gpio == self.gpioA:
          self.levA = level
