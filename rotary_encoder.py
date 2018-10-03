@@ -55,6 +55,8 @@ class decoder:
 
       self.lastGpio = None
 
+      self.dir = 1 # Direction is either 1 or -1
+
       self.pi.set_mode(gpioA, pigpio.INPUT)
       self.pi.set_mode(gpioB, pigpio.INPUT)
 
@@ -81,7 +83,22 @@ class decoder:
              |         |         |         |
          ----+         +---------+         +---------+  1
       """
+      if gpio == self.gpioA:
+          # Need to fix direction logic here
+          if self.lastGpio == self.gpioA:
+              self.callback(-1)
+          else:
+              self.callback(1)
+              self.lastGpio = gpio
+              self.levA = level
+      else:
+          if self.lastGpio == self.gpioB:
+              self.callback(-1)
+          else:
+              self.callback(1)
+              self.lastGpio = gpio
 
+""" Previous code:
       if gpio == self.gpioA:
          self.levA = level
       else:
@@ -96,6 +113,8 @@ class decoder:
          elif gpio == self.gpioB and level == 1:
             if self.levA == 1:
                self.callback(-1)
+"""
+
 
    def cancel(self):
 
@@ -132,4 +151,3 @@ if __name__ == "__main__":
    decoder.cancel()
 
    pi.stop()
-
