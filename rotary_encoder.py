@@ -3,143 +3,108 @@
 import pigpio
 
 class decoder:
+    """
+    Class to decode mechanical rotary encoder pulses.
+    """
 
-   """Class to decode mechanical rotary encoder pulses."""
+    def __init__(self, pi, gpioA, gpioB, callback):
+        """
+        Instantiate the class with the pi and gpios connected to
+        rotary encoder contacts A and B.  The common contact
+        should be connected to ground.  The callback is
+        called when the rotary encoder is turned.  It takes
+        one parameter which is +1 for clockwise and -1 for
+        counterclockwise.
 
-   def __init__(self, pi, gpioA, gpioB, callback):
+        EXAMPLE
 
-      """
-      Instantiate the class with the pi and gpios connected to
-      rotary encoder contacts A and B.  The common contact
-      should be connected to ground.  The callback is
-      called when the rotary encoder is turned.  It takes
-      one parameter which is +1 for clockwise and -1 for
-      counterclockwise.
+        import time
+        import pigpio
 
-      EXAMPLE
+        import rotary_encoder
 
-      import time
-      import pigpio
+        pos = 0
 
-      import rotary_encoder
+        def callback(way):
 
-      pos = 0
+            global pos
 
-      def callback(way):
+            pos += way
 
-         global pos
+            print("pos={}".format(pos))
 
-         pos += way
+        pi = pigpio.pi()
 
-         print("pos={}".format(pos))
+        decoder = rotary_encoder.decoder(pi, 7, 8, callback)
 
-      pi = pigpio.pi()
+        time.sleep(300)
 
-      decoder = rotary_encoder.decoder(pi, 7, 8, callback)
+        decoder.cancel()
 
-      time.sleep(300)
+        pi.stop()
 
-      decoder.cancel()
+        """
 
-      pi.stop()
+        self.pi = pi
+        self.gpioA = gpioA
+        self.gpioB = gpioB
+        self.callback = callback
 
-      """
+        self.levA = 0
+        self.levB = 0
 
-      self.pi = pi
-      self.gpioA = gpioA
-      self.gpioB = gpioB
-      self.callback = callback
+        self.lastGpio = None
 
-      self.levA = 0
-      self.levB = 0
+        self.dir = 1 # Direction is either 1 or -1
 
-      self.lastGpio = None
+        self.pi.set_mode(gpioA, pigpio.INPUT)
+        self.pi.set_mode(gpioB, pigpio.INPUT)
 
-      self.dir = 1 # Direction is either 1 or -1
+        self.pi.set_pull_up_down(gpioA, pigpio.PUD_UP)
+        self.pi.set_pull_up_down(gpioB, pigpio.PUD_UP)
 
-      self.pi.set_mode(gpioA, pigpio.INPUT)
-      self.pi.set_mode(gpioB, pigpio.INPUT)
+        self.cbA = self.pi.callback(gpioA, pigpio.EITHER_EDGE, self._pulse)
+        self.cbB = self.pi.callback(gpioB, pigpio.EITHER_EDGE, self._pulse)
 
-      self.pi.set_pull_up_down(gpioA, pigpio.PUD_UP)
-      self.pi.set_pull_up_down(gpioB, pigpio.PUD_UP)
+    def _pulse(self, gpio, level, tick):
+        """
+        Decode the rotary encoder pulse.
 
-      self.cbA = self.pi.callback(gpioA, pigpio.EITHER_EDGE, self._pulse)
-      self.cbB = self.pi.callback(gpioB, pigpio.EITHER_EDGE, self._pulse)
+                 +---------+         +---------+      0
+                 |         |         |         |
+       A         |         |         |         |
+                 |         |         |         |
+       +---------+         +---------+         +----- 1
 
-   def _pulse(self, gpio, level, tick):
+           +---------+         +---------+            0
+           |         |         |         |
+       B   |         |         |         |
+           |         |         |         |
+       ----+         +---------+         +---------+  1
+        """
+        a_prev = self.levA
+        b_prev = self.levB
 
-      """
-      Decode the rotary encoder pulse.
+        if gpio == self.gpioA:
+            self.lastGpio = self.gpioA
+            self.levA = level
+        else:
+            self.lastGpio = self.gpioB
+            self.levB = level
 
-                   +---------+         +---------+      0
-                   |         |         |         |
-         A         |         |         |         |
-                   |         |         |         |
-         +---------+         +---------+         +----- 1
+        if (not self.levA and not b_prev) or (self.levA and b_prev):
+            self.dir = 1
+        else:
+            self.dir = -1
 
-             +---------+         +---------+            0
-             |         |         |         |
-         B   |         |         |         |
-             |         |         |         |
-         ----+         +---------+         +---------+  1
-      """
-      a_prev = self.levA
-      b_prev = self.levB
+        self.callback(self.dir)
 
-      if gpio == self.gpioA:
-          self.lastGpio = self.gpioA
-          self.levA = level
-      else:
-          self.lastGpio = self.gpioB
-          self.levB = level
-
-      if (not self.levA and not b_prev) or (self.levA and b_prev):
-          self.dir = 1
-      else:
-          self.dir = -1
-
-      self.callback(self.dir)
-    '''
-      # Need to fix direction logic here
-          if self.lastGpio == self.gpioA:
-              self.callback(-1)
-          else:
-              self.callback(1)
-              self.lastGpio = gpio
-              self.levA = level
-      else:
-          if self.lastGpio == self.gpioB:
-              self.callback(-1)
-          else:
-              self.callback(1)
-              self.lastGpio = gpio
-    '''
-""" Previous code:
-      if gpio == self.gpioA:
-         self.levA = level
-      else:
-         self.levB = level;
-
-      if gpio != self.lastGpio: # debounce
-         self.lastGpio = gpio
-
-         if   gpio == self.gpioA and level == 1:
-            if self.levB == 1:
-               self.callback(1)
-         elif gpio == self.gpioB and level == 1:
-            if self.levA == 1:
-               self.callback(-1)
-"""
-
-
-   def cancel(self):
-
-      """
-      Cancel the rotary encoder decoder.
-      """
-
-      self.cbA.cancel()
-      self.cbB.cancel()
+    def cancel(self):
+        """
+        Cancel the rotary encoder decoder.
+        """
+        self.cbA.cancel()
+        self.cbB.cancel()
 
 if __name__ == "__main__":
 

@@ -2,8 +2,8 @@
 
 import RPi.GPIO as GPIO
 import time
-#import pigpio           # Remember to enable pigpiod
-#import rotary_encoder
+import pigpio           # Remember to enable pigpiod
+import rotary_encoder
 
 # Define pipgio position and callback:
 pos = 0
@@ -36,16 +36,17 @@ GPIO.output(AI2, GPIO.HIGH)
 dc = 15          # Duty Cycle
 pwma.start(dc)
 
-'''
+
 pi = pigpio.pi()
 decoder = rotary_encoder.decoder(pi, 7, 8, decoder_callback)
-'''
 
-aval = GPIO.input(encA)
-bval = GPIO.input(encB)
-count = 0
+
+#aval = GPIO.input(encA)
+#bval = GPIO.input(encB)
+#count = 0
 try:
     while True:
+        '''
         #dc = (dc+0.0001)%100
         #pwma.ChangeDutyCycle(dc)
         if (GPIO.input(encA) != aval):
@@ -56,6 +57,9 @@ try:
             count = count+1
             bval = GPIO.input(encB)
             print("{} A: {}, B: {}".format(count, aval, bval))
+        '''
 except KeyboardInterrupt:
     pwma.stop()
     GPIO.cleanup()
+    decoder.cancel()
+    pi.stop()
