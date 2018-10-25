@@ -2,12 +2,14 @@
 
 import pigpio
 
+import rotary_encoder
+
 class motor:
     """
     Class to drive motor.
     """
 
-    def __init__(self, pi, gpio1, gpio2, pwm_pin):
+    def __init__(self, pi, gpio1, gpio2, pwm_pin, dec_pin1=7, dec_pin2=8):
         """
         pi: pigpio pi object
         gpio1: motor pin 1
@@ -20,7 +22,12 @@ class motor:
         self.gpio2 = gpio2
         self.pwm_freq = 125000 # this is the maximum allowable frequency
         self.pwm_pin = pwm_pin
+        self.dec_pin1 = dec_pin1
+        self.dec_pin2 = dec_pin2
         self.dir = None
+
+        self.decoder = rotary_encoder.decoder(self.pi, self.dec_pin1, self.dec_pin2)
+
         self.pi.set_mode(self.gpio1, pigpio.OUTPUT)
         self.pi.set_mode(self.gpio2, pigpio.OUTPUT)
 
@@ -30,11 +37,34 @@ class motor:
         #self.pi.set_pull_up_down(gpioA, pigpio.PUD_UP)
         #self.pi.set_pull_up_down(gpioB, pigpio.PUD_UP)
 
+    def get_pos(self):
+        '''
+        returns the position of the motor in degrees
+        '''
+        return self.decoder.get_position()
+
     def set_duty_cycle(self, percent_cycle):
+        '''
+        sets the duty cycle of the motor
+        percent_cycle: -100 to 100 (full speed each direction)
+        '''
+        # check direction
+        new_direction = 0
+        if percent_cycle >= 0:
+            new_direction = 1
+        else:
+            new_direction = -1
+            percent_cycle = abs(percent_cycle)
+
+        # check duty cycle bounds
+        if percent_cycle >= 100:
+            percent_cycle = 100
+
+        # convert to pwm scale (integer 0 - 1M)
         duty_cycle = int(percent_cycle*10000)
-        print(duty_cycle)
-        if duty_cycle >= 1000000:
-            duty_cycle = 1000000
+
+        # send new PWM and direction commands
+        self.set_direction(new_direction)
         self.pi.hardware_PWM(self.pwm_pin, self.pwm_freq, duty_cycle)
 
     def set_direction(self, new_direction):
@@ -43,12 +73,12 @@ class motor:
                 self.pi.write(self.gpio1, 0)
                 self.pi.write(self.gpio2, 1)
                 self.dir = 1
-                print("CounterClockwise")
+                #print("CounterClockwise")
             else:
                 self.pi.write(self.gpio1, 1)
                 self.pi.write(self.gpio2, 0)
                 self.dir = -1
-                print("Clockwise")
+                #print("Clockwise")
 
 
 #if __name__ == "__main__":
