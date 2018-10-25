@@ -7,48 +7,16 @@ class decoder:
     Class to decode mechanical rotary encoder pulses.
     """
 
-    def __init__(self, pi, gpioA, gpioB, callback):
+    def __init__(self, pi, gpioA, gpioB):
         """
         Instantiate the class with the pi and gpios connected to
         rotary encoder contacts A and B.  The common contact
-        should be connected to ground.  The callback is
-        called when the rotary encoder is turned.  It takes
-        one parameter which is +1 for clockwise and -1 for
-        counterclockwise.
-
-        EXAMPLE
-
-        import time
-        import pigpio
-
-        import rotary_encoder
-
-        pos = 0
-
-        def callback(way):
-
-            global pos
-
-            pos += way
-
-            print("pos={}".format(pos))
-
-        pi = pigpio.pi()
-
-        decoder = rotary_encoder.decoder(pi, 7, 8, callback)
-
-        time.sleep(300)
-
-        decoder.cancel()
-
-        pi.stop()
-
+        should be connected to ground.
         """
 
         self.pi = pi
         self.gpioA = gpioA
         self.gpioB = gpioB
-        self.callback = callback
 
         self.levA = 0
         self.levB = 0
@@ -56,6 +24,7 @@ class decoder:
         self.lastGpio = None
 
         self.dir = 1 # Direction is either 1 or -1
+        self.pos = 0
 
         self.pi.set_mode(gpioA, pigpio.INPUT)
         self.pi.set_mode(gpioB, pigpio.INPUT)
@@ -97,7 +66,10 @@ class decoder:
         else:
             self.dir = -1
 
-        self.callback(self.dir)
+        self.update_position(self.dir)
+
+    def update_position(delta_pos):
+        self.pos = self.pos + delta_pos
 
     def cancel(self):
         """
@@ -105,30 +77,3 @@ class decoder:
         """
         self.cbA.cancel()
         self.cbB.cancel()
-
-if __name__ == "__main__":
-
-   import time
-   import pigpio
-
-   import rotary_encoder
-
-   pos = 0
-
-   def callback(way):
-
-      global pos
-
-      pos += way
-
-      print("pos={}".format(pos))
-
-   pi = pigpio.pi()
-
-   decoder = rotary_encoder.decoder(pi, 7, 8, callback)
-
-   time.sleep(300)
-
-   decoder.cancel()
-
-   pi.stop()

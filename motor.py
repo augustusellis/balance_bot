@@ -2,12 +2,14 @@
 
 import pigpio
 
+import rotary_encoder
+
 class motor:
     """
     Class to drive motor.
     """
 
-    def __init__(self, pi, gpio1, gpio2, pwm_pin):
+    def __init__(self, pi, gpio1, gpio2, pwm_pin, dec_pin1=7, dec_pin3=8):
         """
         pi: pigpio pi object
         gpio1: motor pin 1
@@ -20,7 +22,12 @@ class motor:
         self.gpio2 = gpio2
         self.pwm_freq = 125000 # this is the maximum allowable frequency
         self.pwm_pin = pwm_pin
+        self.dec_pin1 = dec_pin1
+        self.dec_pin2 = dec_pin2
         self.dir = None
+
+        self.decoder = rotary_encoder.decoder(self.pi, self.dec_pin1, self.dec_pin2)
+
         self.pi.set_mode(self.gpio1, pigpio.OUTPUT)
         self.pi.set_mode(self.gpio2, pigpio.OUTPUT)
 
@@ -29,6 +36,9 @@ class motor:
 
         #self.pi.set_pull_up_down(gpioA, pigpio.PUD_UP)
         #self.pi.set_pull_up_down(gpioB, pigpio.PUD_UP)
+
+    def get_pos(self):
+        return self.decoder.pos
 
     def set_duty_cycle(self, percent_cycle):
         duty_cycle = int(percent_cycle*10000)
