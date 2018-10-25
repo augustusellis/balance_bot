@@ -35,7 +35,7 @@ print(motor1.dir)
 try:
     while True:
         accel_data = mpu.get_accel_data()
-        xval = abs(accel_data['x'])*10
+        xval = (accel_data['x'])*10
         print(xval)
         motor1.set_duty_cycle( xval )
         #time.sleep(0.01)
