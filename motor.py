@@ -9,7 +9,7 @@ class motor:
     Class to drive motor.
     """
 
-    def __init__(self, pi, gpio1, gpio2, pwm_pin, dec_pin1=7, dec_pin3=8):
+    def __init__(self, pi, gpio1, gpio2, pwm_pin, dec_pin1=7, dec_pin2=8):
         """
         pi: pigpio pi object
         gpio1: motor pin 1
