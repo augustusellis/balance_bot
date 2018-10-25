@@ -7,7 +7,11 @@ class decoder:
     Class to decode mechanical rotary encoder pulses.
     """
 
+<<<<<<< HEAD
     def __init__(self, pi, gpioA, gpioB, countsPerRevolution):
+=======
+    def __init__(self, pi, gpioA, gpioB):
+>>>>>>> 375082b327477dcdbecbd217e911276211090326
         """
         Instantiate the class with the pi and gpios connected to
         rotary encoder contacts A and B.  The common contact
@@ -17,8 +21,11 @@ class decoder:
         self.pi = pi
         self.gpioA = gpioA
         self.gpioB = gpioB
+<<<<<<< HEAD
 
         self.countsPerRevolution = countsPerRevolution
+=======
+>>>>>>> 375082b327477dcdbecbd217e911276211090326
 
         self.levA = 0
         self.levB = 0
@@ -70,11 +77,16 @@ class decoder:
 
         self.update_position(self.dir)
 
+<<<<<<< HEAD
     def update_position(self, delta_pos):
         self.pos = self.pos + delta_pos
 
     def get_position(self):
         return self.pos/self.countsPerRevolution*360
+=======
+    def update_position(delta_pos):
+        self.pos = self.pos + delta_pos
+>>>>>>> 375082b327477dcdbecbd217e911276211090326
 
     def cancel(self):
         """

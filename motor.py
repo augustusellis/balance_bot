@@ -38,10 +38,7 @@ class motor:
         #self.pi.set_pull_up_down(gpioB, pigpio.PUD_UP)
 
     def get_pos(self):
-        '''
-        returns the position of the motor in degrees
-        '''
-        return self.decoder.get_position()
+        return self.decoder.pos
 
     def set_duty_cycle(self, percent_cycle):
         '''
