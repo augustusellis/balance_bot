@@ -33,7 +33,7 @@ class tcp_client:
         self.s.send(msg)
 
 if __name__ == '__main__':
-    my_client = tcp_client('0.0.0.0',14150)
+    my_client = tcp_client('192.168.1.13',14150)
     countx = 0
     county = 0
     countz = 0
