@@ -51,6 +51,7 @@ class mpu6050:
     GYRO_YOUT0 = 0x45
     GYRO_ZOUT0 = 0x47
 
+    DLPF_CONFIG = 0x1A
     ACCEL_CONFIG = 0x1C
     GYRO_CONFIG = 0x1B
 
@@ -59,6 +60,11 @@ class mpu6050:
         self.bus = smbus.SMBus(bus)
         # Wake up the MPU-6050 since it starts in sleep mode
         self.bus.write_byte_data(self.address, self.PWR_MGMT_1, 0x00)
+
+        # Set the filter configuration
+        data = self.bus.read_byte_data(self.address, self.DLPF_CONFIG)
+        data = (data >> 3 << 3) | 0x02
+        self.bus.write_byte_data(self.address, self.DLPF_CONFIG, data)
 
     # I2C communication methods
 

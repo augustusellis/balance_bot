@@ -7,7 +7,7 @@ class decoder:
     Class to decode mechanical rotary encoder pulses.
     """
 
-    def __init__(self, pi, gpioA, gpioB, countsPerRevolution):
+    def __init__(self, pi, gpioA, gpioB, countsPerRevolution=360):
         """
         Instantiate the class with the pi and gpios connected to
         rotary encoder contacts A and B.  The common contact

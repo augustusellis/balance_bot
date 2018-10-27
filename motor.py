@@ -9,7 +9,7 @@ class motor:
     Class to drive motor.
     """
 
-    def __init__(self, pi, gpio1, gpio2, pwm_pin, dec_pin1=7, dec_pin2=8, countsPerRevolution = 227.6*48):
+    def __init__(self, pi, gpio1, gpio2, pwm_pin, dec_pin1=7, dec_pin2=8, countsPerRevolution = 227.6*48, encoder=False):
         """
         pi: pigpio pi object
         gpio1: motor pin 1
@@ -26,7 +26,10 @@ class motor:
         self.dec_pin2 = dec_pin2
         self.dir = None
 
-        self.decoder = rotary_encoder.decoder(self.pi, self.dec_pin1, self.dec_pin2, countsPerRevolution)
+        if encoder == True:
+            self.decoder = rotary_encoder.decoder(self.pi, self.dec_pin1, self.dec_pin2, countsPerRevolution)
+        else:
+            self.decoder = rotary_encoder.decoder(self.pi, self.dec_pin1, self.dec_pin2, countsPerRevolution)
 
         self.pi.set_mode(self.gpio1, pigpio.OUTPUT)
         self.pi.set_mode(self.gpio2, pigpio.OUTPUT)
