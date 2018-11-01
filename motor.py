@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import pigpio
-
 import rotary_encoder
 
 class motor:
@@ -29,7 +28,7 @@ class motor:
         if encoder == True:
             self.decoder = rotary_encoder.decoder(self.pi, self.dec_pin1, self.dec_pin2, countsPerRevolution)
         else:
-            self.decoder = rotary_encoder.decoder(self.pi, self.dec_pin1, self.dec_pin2, countsPerRevolution)
+            self.decoder = rotary_encoder.VirtualDecoder(self.pi, self.dec_pin1, self.dec_pin2, countsPerRevolution)
 
         self.pi.set_mode(self.gpio1, pigpio.OUTPUT)
         self.pi.set_mode(self.gpio2, pigpio.OUTPUT)
@@ -79,6 +78,3 @@ class motor:
                 self.pi.write(self.gpio2, 0)
                 self.dir = -1
                 #print("Clockwise")
-
-
-#if __name__ == "__main__":

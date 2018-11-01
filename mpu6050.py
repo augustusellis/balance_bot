@@ -66,6 +66,13 @@ class mpu6050:
         data = (data >> 3 << 3) | 0x02
         self.bus.write_byte_data(self.address, self.DLPF_CONFIG, data)
 
+        # sensor biases
+        self.GxBias = 0
+        self.GyBias = 0
+        self.GzBias = 0
+        self.AxBias = 0
+        self.AyBias = 0
+        self.AzBias = 0
     # I2C communication methods
 
     def read_i2c_word(self, register):
@@ -162,9 +169,9 @@ class mpu6050:
             print("Unkown range - accel_scale_modifier set to self.ACCEL_SCALE_MODIFIER_2G")
             accel_scale_modifier = self.ACCEL_SCALE_MODIFIER_2G
 
-        x = x / accel_scale_modifier
-        y = y / accel_scale_modifier
-        z = z / accel_scale_modifier
+        x = x / accel_scale_modifier - self.AxBias
+        y = y / accel_scale_modifier - self.AyBias
+        z = z / accel_scale_modifier - self.AzBias
 
         if g is True:
             return {'x': x, 'y': y, 'z': z}
@@ -234,9 +241,9 @@ class mpu6050:
             print("Unkown range - gyro_scale_modifier set to self.GYRO_SCALE_MODIFIER_250DEG")
             gyro_scale_modifier = self.GYRO_SCALE_MODIFIER_250DEG
 
-        x = x / gyro_scale_modifier
-        y = y / gyro_scale_modifier
-        z = z / gyro_scale_modifier
+        x = x / gyro_scale_modifier - self.GxBias
+        y = y / gyro_scale_modifier - self.GyBias
+        z = z / gyro_scale_modifier - self.GzBias
 
         return {'x': x, 'y': y, 'z': z}
 
@@ -247,6 +254,14 @@ class mpu6050:
         gyro = self.get_gyro_data()
 
         return [accel, gyro, temp]
+
+    def calibrate(self, biases):
+        self.GxBias = biases[0]
+        self.GyBias = biases[1]
+        self.GzBias = biases[2]
+        self.AxBias = biases[3]
+        self.AyBias = biases[4]
+        self.AzBias = biases[5]
 
 if __name__ == "__main__":
     mpu = mpu6050(0x68)

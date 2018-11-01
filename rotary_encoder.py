@@ -82,3 +82,33 @@ class decoder:
         """
         self.cbA.cancel()
         self.cbB.cancel()
+
+class VirtualDecoder:
+    """
+    Virtual Class to Be Used when there is no encoder on the motor.
+    """
+
+    def __init__(self, pi, gpioA, gpioB, countsPerRevolution=360):
+
+        self.pi = pi
+        self.gpioA = gpioA
+        self.gpioB = gpioB
+
+        self.countsPerRevolution = countsPerRevolution
+
+        self.levA = 0
+        self.levB = 0
+
+        self.lastGpio = None
+
+        self.dir = 1 # Direction is either 1 or -1
+        self.pos = 0
+
+    def update_position(self, delta_pos):
+        self.pos = self.pos + delta_pos
+
+    def get_position(self):
+        return 0
+
+    def cancel(self):
+        return 0
