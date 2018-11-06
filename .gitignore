@@ -1,3 +1,4 @@
 *.pyc
 .ftpconfig
 *.swp
+Adafruit_Python_*
