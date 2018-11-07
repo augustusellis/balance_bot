@@ -1,4 +1,5 @@
 import threading
+from collections import deque
 import BNO055
 
 # Wrapper class for the IMU. This class is meant to combine the BNO055 class
