@@ -220,7 +220,7 @@ OPERATION_MODE_NDOF                  = 0X0C
 
 class BNO055(object):
 
-    def __init__(self, pi, rst=None, address=BNO055_ADDRESS_A, bus=1, serial_timeout_sec=5, **kwargs):
+    def __init__(self, pi = pigpio.pi(), rst=None, address=BNO055_ADDRESS_A, bus=1, serial_timeout_sec=5, **kwargs):
         # If reset pin is provided save it and a reference to provided GPIO
         # bus (or the default system GPIO bus if none is provided).
         self.pi = pi
@@ -230,11 +230,14 @@ class BNO055(object):
         if self.rst is not None:
             # Setup the reset pin as an output at a high level.
             self.pi.set_mode(self.rst, pigpio.OUTPUT)
+            self.pi.write(self.rst, 0)
+            time.sleep(0.65)
             self.pi.write(self.rst, 1)
             #self._gpio.setup(self.rst, GPIO.OUT)
             #self._gpio.set_high(self.rst)
             # Wait a 650 milliseconds in case setting the reset high reset the chip.
             time.sleep(0.65)
+        print('{0:b}'.format(self.address, BNO055_UNIT_SEL_ADDR))
     '''
     def _serial_send(self, command, ack=True, max_attempts=5):
         # Send a serial command and automatically handle if it needs to be resent
@@ -270,10 +273,11 @@ class BNO055(object):
 
     def _write_bytes(self, register_address, data):
         # Write a list of 8-bit values starting at the provided register address.
-        iter_address = register_address
-        for iter_data in data:
-            self._write_byte(iter_address, iter_data)
-            iter_address = iter_address + 1
+        self.bus.write_i2c_block_data(register_address, data)
+        #iter_address = register_address
+        #for iter_data in data:
+        #    self._write_byte(iter_address, iter_data)
+        #    iter_address = iter_address + 1
         '''
         if self._i2c_device is not None:
             # I2C write.
@@ -298,7 +302,7 @@ class BNO055(object):
         # Write an 8-bit value to the provided register address.  If ack is True
         # then expect an acknowledgement in serial mode, otherwise ignore any
         # acknowledgement (necessary when resetting the device).
-        self.bus.write_byte_data(self.address, register_address, value)
+        self.bus.write_byte_data(self.address, register_address, value & 0xFF)
         '''
         if self.bus is not None:
             # I2C write.
@@ -320,35 +324,16 @@ class BNO055(object):
 
     def _read_bytes(self, register_address, length):
         # Read a number of unsigned byte values starting from the provided address.
-        data = []
+        #data = []
         # I2C read.
-        for iter_address in range(register_address, register_address + length + 1):
-            data.append(self._read_byte(register_address))
-        return bytearray(data)
-        '''
-        else:
-            # Build and send serial register read command.
-            command = bytearray(4)
-            command[0] = 0xAA  # Start byte
-            command[1] = 0x01  # Read
-            command[2] = address & 0xFF
-            command[3] = length & 0xFF
-            resp = self._serial_send(command)
-            # Verify register read succeeded.
-            if resp[0] != 0xBB:
-                 raise RuntimeError('Register read error: 0x{0}'.format(binascii.hexlify(resp)))
-            # Read the returned bytes.
-            length = resp[1]
-            resp = bytearray(self._serial.read(length))
-            #logger.debug('Received: 0x{0}'.format(binascii.hexlify(resp)))
-            if resp is None or len(resp) != length:
-                raise RuntimeError('Timeout waiting to read data, is the BNO055 connected?')
-            return resp
-        '''
+        #for iter_address in range(register_address, register_address + length + 1):
+        #    data.append(self._read_byte(register_address))
+        return bytearray(self.bus.read_i2c_block_data(self.address, register_address, length))
 
     def _read_byte(self, register_address):
         # Read an 8-bit unsigned value from the provided register address.
-        data = self.bus.read_byte_data(self.address, register_address)
+        data = self.bus.read_byte_data(self.address, register_address) & 0xFF
+        #print('{0:b}'.format(data))
         return data
 
     def _read_signed_byte(self, register_address):
