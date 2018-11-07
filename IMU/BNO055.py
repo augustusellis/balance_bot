@@ -26,13 +26,7 @@
 
 import smbus
 import pigpio
-
-import binascii
-import logging
-import struct
 import time
-
-import serial
 
 
 # I2C addresses
@@ -215,9 +209,6 @@ OPERATION_MODE_NDOF_FMC_OFF          = 0X0B
 OPERATION_MODE_NDOF                  = 0X0C
 
 
-#logger = logging.getLogger(__name__)
-
-
 class BNO055(object):
 
     def __init__(self, pi = pigpio.pi(), rst=None, address=BNO055_ADDRESS_A, bus=1, serial_timeout_sec=5, **kwargs):
@@ -235,99 +226,29 @@ class BNO055(object):
             self.pi.write(self.rst, 1)
             #self._gpio.setup(self.rst, GPIO.OUT)
             #self._gpio.set_high(self.rst)
-            # Wait a 650 milliseconds in case setting the reset high reset the chip.
+            # Wait 650 milliseconds in case setting the reset high reset the chip.
             time.sleep(0.65)
+        print("Initializing BNO055.")
+        self.begin()
         print('{0:b}'.format(self.address, BNO055_UNIT_SEL_ADDR))
-    '''
-    def _serial_send(self, command, ack=True, max_attempts=5):
-        # Send a serial command and automatically handle if it needs to be resent
-        # because of a bus error.  If ack is True then an ackowledgement is
-        # expected and only up to the maximum specified attempts will be made
-        # to get a good acknowledgement (default is 5).  If ack is False then
-        # no acknowledgement is expected (like when resetting the device).
-        attempts = 0
-        while True:
-            # Flush any pending received data to get into a clean state.
-            self._serial.flushInput()
-            # Send the data.
-            self._serial.write(command)
-            #logger.debug('Serial send: 0x{0}'.format(binascii.hexlify(command)))
-            # Stop if no acknowledgment is expected.
-            if not ack:
-                return
-            # Read acknowledgement response (2 bytes).
-            resp = bytearray(self._serial.read(2))
-            #logger.debug('Serial receive: 0x{0}'.format(binascii.hexlify(resp)))
-            if resp is None or len(resp) != 2:
-                raise RuntimeError('Timeout waiting for serial acknowledge, is the BNO055 connected?')
-            # Stop if there's no bus error (0xEE07 response) and return response bytes.
-            if not (resp[0] == 0xEE and resp[1] == 0x07):
-                return resp
-            # Else there was a bus error so resend, as recommended in UART app
-            # note at:
-            #   http://ae-bst.resource.bosch.com/media/products/dokumente/bno055/BST-BNO055-AN012-00.pdf
-            attempts += 1
-            if attempts >=  max_attempts:
-                raise RuntimeError('Exceeded maximum attempts to acknowledge serial command without bus error!')
-    '''
+
 
     def _write_bytes(self, register_address, data):
         # Write a list of 8-bit values starting at the provided register address.
         self.bus.write_i2c_block_data(register_address, data)
-        #iter_address = register_address
-        #for iter_data in data:
-        #    self._write_byte(iter_address, iter_data)
-        #    iter_address = iter_address + 1
-        '''
-        if self._i2c_device is not None:
-            # I2C write.
-            self._i2c_device.writeList(address, data)
-        '''
-        '''
-        else:
-            # Build and send serial register write command.
-            command = bytearray(4+len(data))
-            command[0] = 0xAA  # Start byte
-            command[1] = 0x00  # Write
-            command[2] = address & 0xFF
-            command[3] = len(data) & 0xFF
-            command[4:] = map(lambda x: x & 0xFF, data)
-            resp = self._serial_send(command, ack=ack)
-            # Verify register write succeeded if there was an acknowledgement.
-            if resp[0] != 0xEE and resp[1] != 0x01:
-                raise RuntimeError('Register write error: 0x{0}'.format(binascii.hexlify(resp)))
-        '''
+
 
     def _write_byte(self, register_address, value):
         # Write an 8-bit value to the provided register address.  If ack is True
         # then expect an acknowledgement in serial mode, otherwise ignore any
         # acknowledgement (necessary when resetting the device).
         self.bus.write_byte_data(self.address, register_address, value & 0xFF)
-        '''
-        if self.bus is not None:
-            # I2C write.
-            self._i2c_device.write8(address, value)
 
-        else:
-            # Build and send serial register write command.
-            command = bytearray(5)
-            command[0] = 0xAA  # Start byte
-            command[1] = 0x00  # Write
-            command[2] = address & 0xFF
-            command[3] = 1     # Length (1 byte)
-            command[4] = value & 0xFF
-            resp = self._serial_send(command, ack=ack)
-            # Verify register write succeeded if there was an acknowledgement.
-            if ack and resp[0] != 0xEE and resp[1] != 0x01:
-                raise RuntimeError('Register write error: 0x{0}'.format(binascii.hexlify(resp)))
-        '''
 
     def _read_bytes(self, register_address, length):
         # Read a number of unsigned byte values starting from the provided address.
         #data = []
         # I2C read.
-        #for iter_address in range(register_address, register_address + length + 1):
-        #    data.append(self._read_byte(register_address))
         return bytearray(self.bus.read_i2c_block_data(self.address, register_address, length))
 
     def _read_byte(self, register_address):
@@ -400,9 +321,10 @@ class BNO055(object):
         return True
 
     def set_mode(self, mode):
-        """Set operation mode for BNO055 sensor.  Mode should be a value from
+        """
+        Set operation mode for BNO055 sensor.  Mode should be a value from
         table 3-3 and 3-5 of the datasheet:
-          http://www.adafruit.com/datasheets/BST_BNO055_DS000_12.pdf
+        http://www.adafruit.com/datasheets/BST_BNO055_DS000_12.pdf
         """
         self._write_byte(BNO055_OPR_MODE_ADDR, mode & 0xFF)
         # Delay for 30 milliseconds (datsheet recommends 19ms, but a little more
@@ -430,19 +352,6 @@ class BNO055(object):
         # Return the results as a tuple of all 5 values.
         return (sw, bl, accel, mag, gyro)
 
-    def set_external_crystal(self, external_crystal):
-        """Set if an external crystal is being used by passing True, otherwise
-        use the internal oscillator by passing False (the default behavior).
-        """
-        # Switch to configuration mode.
-        self._config_mode()
-        # Set the clock bit appropriately in the SYS_TRIGGER register.
-        if external_crystal:
-            self._write_byte(BNO055_SYS_TRIGGER_ADDR, 0x80)
-        else:
-            self._write_byte(BNO055_SYS_TRIGGER_ADDR, 0x00)
-        # Go back to normal operation mode.
-        self._operation_mode()
 
     def get_system_status(self, run_self_test=True):
         """Return a tuple with status information.  Three values will be returned:
@@ -497,6 +406,7 @@ class BNO055(object):
         error = self._read_byte(BNO055_SYS_ERR_ADDR)
         # Return the results as a tuple of all 3 values.
         return (status, self_test, error)
+
 
     def get_calibration_status(self):
         """Read the calibration status of the sensors and return a 4 tuple with

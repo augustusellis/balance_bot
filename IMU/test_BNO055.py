@@ -13,12 +13,6 @@ bno = BNO055(pi=pi, rst=18, address=0x28, bus=1)
 #bno = BNO055.BNO055(rst='P9_12')
 
 
-# Enable verbose debug logging if -v is passed as a parameter.
-
-# Initialize the BNO055 and stop if something went wrong.
-if not bno.begin():
-    raise RuntimeError('Failed to initialize BNO055! Is the sensor connected?')
-
 # Print system status and self test result.
 status, self_test, error = bno.get_system_status()
 print('System status: {0}'.format(status))
@@ -48,8 +42,8 @@ while True:
     #print('Heading={0:0.2F} Roll={1:0.2F} Pitch={2:0.2F}\tSys_cal={3} Gyro_cal={4} Accel_cal={5} Mag_cal={6}'.format(
     #      heading, roll, pitch, sys, gyro, accel, mag))
 
-    #print('Gx={:0.2F} Gy={1:0.2F} Gz={1:0.2F} Ax={1:0.2F} Ay={1:0.2F} Az={1:0.2F}'.format(gx, gy, gz, ax, ay, az))
-    print('Gx={:6d} Gy={:6d} Gz={:6d} Ax={:6d} Ay={:6d} Az={:6d}'.format(gx, gy, gz, ax, ay, az))
+    print('Gx={0:0.2F} Gy={1:0.2F} Gz={1:0.2F} Ax={1:0.2F} Ay={1:0.2F} Az={1:0.2F}'.format(gx, gy, gz, ax, ay, az))
+    #print('Gx={:6d} Gy={:6d} Gz={:6d} Ax={:6d} Ay={:6d} Az={:6d}'.format(gx, gy, gz, ax, ay, az))
 
     #print('Heading={0:0.2F} Roll={1:0.2F} Pitch={2:0.2F}'.format(heading, roll, pitch))
 
