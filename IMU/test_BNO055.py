@@ -33,7 +33,7 @@ print('Gyroscope ID:       0x{0:02X}\n'.format(gyro))
 input('Press enter to begin reading BNO055 data, press Ctrl-C to quit...')
 while True:
     # Read the Euler angles for heading, roll, pitch (all in degrees).
-    heading, roll, pitch = bno.read_euler()
+    #heading, roll, pitch = bno.read_euler()
     gx, gy, gz = bno.read_gyroscope()
     ax, ay, az = bno.read_accelerometer()
     # Read the calibration status, 0=uncalibrated and 3=fully calibrated.
@@ -42,7 +42,8 @@ while True:
     #print('Heading={0:0.2F} Roll={1:0.2F} Pitch={2:0.2F}\tSys_cal={3} Gyro_cal={4} Accel_cal={5} Mag_cal={6}'.format(
     #      heading, roll, pitch, sys, gyro, accel, mag))
 
-    print('Gx={0:0.2F} Gy={1:0.2F} Gz={1:0.2F} Ax={1:0.2F} Ay={1:0.2F} Az={1:0.2F}'.format(gx, gy, gz, ax, ay, az))
+    print('Gx={0:0.2F} Gy={1:0.2F} Gz={2:0.2F} Ax={3:0.2F} Ay={4:0.2F} Az={5:0.2F}'.format(gx, gy, gz, ax, ay, az))
+    #print('Ax={0:0.2F} Ay={1:0.2F} Az={2:0.2F}'.format(ax, ay, az))
     #print('Gx={:6d} Gy={:6d} Gz={:6d} Ax={:6d} Ay={:6d} Az={:6d}'.format(gx, gy, gz, ax, ay, az))
 
     #print('Heading={0:0.2F} Roll={1:0.2F} Pitch={2:0.2F}'.format(heading, roll, pitch))

@@ -230,7 +230,6 @@ class BNO055(object):
             time.sleep(0.65)
         print("Initializing BNO055.")
         self.begin()
-        print('{0:b}'.format(self.address, BNO055_UNIT_SEL_ADDR))
 
 
     def begin(self, mode=OPERATION_MODE_NDOF):
@@ -303,7 +302,10 @@ class BNO055(object):
         X, Y, Z values in degrees per second.
         """
         x, y, z = self._read_vector(BNO055_GYRO_DATA_X_LSB_ADDR)
-        return (x/900.0, y/900.0, z/900.0)
+        # 1 dps = 16 LSB
+        # 1 rps = 900 LSB
+        # Default unit is dps
+        return (x/16.0, y/16.0, z/16.0)
 
 
     def read_accelerometer(self):
@@ -311,6 +313,8 @@ class BNO055(object):
         in meters/second^2.
         """
         x, y, z = self._read_vector(BNO055_ACCEL_DATA_X_LSB_ADDR)
+
+        # 1 m/s2 = 100 LSB (from data sheet)
         return (x/100.0, y/100.0, z/100.0)
 
 
@@ -352,9 +356,7 @@ class BNO055(object):
 
 
     def _write_byte(self, register_address, value):
-        # Write an 8-bit value to the provided register address.  If ack is True
-        # then expect an acknowledgement in serial mode, otherwise ignore any
-        # acknowledgement (necessary when resetting the device).
+        # Write an 8-bit value to the provided register address.
         self.bus.write_byte_data(self.address, register_address, value & 0xFF)
 
 
