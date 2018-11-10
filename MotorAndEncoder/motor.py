@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import pigpio
-import rotary_encoder
+import MotorAndEncoder.rotary_encoder as rotary_encoder
 
 class motor:
     """

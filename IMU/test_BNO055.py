@@ -1,13 +1,21 @@
 import time
 import pigpio
 from BNO055 import BNO055
-
+from ComplementaryFilter import ComplementaryFilter
+import numpy as np
+from collections import deque
+import matplotlib.pyplot as plt
 
 # Create and configure the BNO sensor connection.  Make sure only ONE of the
 # below 'bno = ...' lines is uncommented:
 # Raspberry Pi configuration with serial UART and RST connected to GPIO 18:
 pi = pigpio.pi()
 bno = BNO055(pi=pi, rst=18, address=0x28, bus=1)
+cfilt00 = ComplementaryFilter(alpha=1-0, rollangle=0)
+cfilt02 = ComplementaryFilter(alpha=1-0.02, rollangle=0)
+cfilt05 = ComplementaryFilter(alpha=1-0.05, rollangle=0)
+cfilt10 = ComplementaryFilter(alpha=1-0.1, rollangle=0)
+cfilt20 = ComplementaryFilter(alpha=1-0.2, rollangle=0)
 # BeagleBone Black configuration with default I2C connection (SCL=P9_19, SDA=P9_20),
 # and RST connected to pin P9_12:
 #bno = BNO055.BNO055(rst='P9_12')
@@ -31,20 +39,76 @@ print('Magnetometer ID:    0x{0:02X}'.format(mag))
 print('Gyroscope ID:       0x{0:02X}\n'.format(gyro))
 
 input('Press enter to begin reading BNO055 data, press Ctrl-C to quit...')
-while True:
+
+cfilt00_rollangle = []
+cfilt02_rollangle = []
+cfilt05_rollangle = []
+cfilt10_rollangle = []
+cfilt20_rollangle = []
+
+#gyro_rollangle = []
+#cfilt_rollangle = []
+#euler_rollangle = []
+sim_time = []
+
+
+t = time.time()
+current_time = time.time()
+time_start = current_time
+period = 0.01
+rollangle = 0
+count = 0
+
+
+mx0,my0,mz0 = bno.read_magnetometer()
+
+m0 = (mx0, my0, mz0)
+while True: #count < 500:
+    count = count + 1
+    previous_time = current_time
+    current_time = time.time()
+
+    t = t + period
     # Read the Euler angles for heading, roll, pitch (all in degrees).
     #heading, roll, pitch = bno.read_euler()
     gx, gy, gz = bno.read_gyroscope()
     ax, ay, az = bno.read_accelerometer()
+    mx, my, mz = bno.read_magnetometer()
+    m = (mx,my,mz) #bno.read_magnetometer()
+    heading, roll, pitch = bno.read_euler()
+
+    imu_data = [gx,gy,gz,ax,ay,az,mx,my,mz]
+
+    cfilt00.update(imu_data, current_time-previous_time)
+    cfilt02.update(imu_data, current_time-previous_time)
+    cfilt05.update(imu_data, current_time-previous_time)
+    cfilt10.update(imu_data, current_time-previous_time)
+    cfilt20.update(imu_data, current_time-previous_time)
+
+    cfilt00_rollangle.append(cfilt00.rollangle)
+    cfilt02_rollangle.append(cfilt02.rollangle)
+    cfilt05_rollangle.append(cfilt05.rollangle)
+    cfilt10_rollangle.append(cfilt10.rollangle)
+    cfilt20_rollangle.append(cfilt20.rollangle)
+
+    print(np.linalg.norm(m))
+    #mag_roll = np.arccos(np.dot(m0, m)/(np.linalg.norm(m0)*np.linalg.norm(m)))
+    #mag_roll = np.arccos(m[2]/np.linalg.norm(m))
+    #print(mag_roll)
+    #print('Mx={} My={} Mz={}'.format(mx, my, mz))
+    #print('{}, {}'.format(cfilt02.rollangle, np.arctan2(my-my0,mz-mz0)*180/np.pi))
+
+    #print('{}, {}'.format(cfilt.rollangle, cfilt.gyro_only_angle))
+    #gyro_rollangle.append(cfilt.gyro_only_angle)
+    #cfilt_rollangle.append(cfilt.rollangle)
+    #euler_rollangle.append(-1*pitch)
+    sim_time.append(current_time)
     # Read the calibration status, 0=uncalibrated and 3=fully calibrated.
     #sys, gyro, accel, mag = bno.get_calibration_status()
     # Print everything out.
     #print('Heading={0:0.2F} Roll={1:0.2F} Pitch={2:0.2F}\tSys_cal={3} Gyro_cal={4} Accel_cal={5} Mag_cal={6}'.format(
     #      heading, roll, pitch, sys, gyro, accel, mag))
 
-    print('Gx={0:0.2F} Gy={1:0.2F} Gz={2:0.2F} Ax={3:0.2F} Ay={4:0.2F} Az={5:0.2F}'.format(gx, gy, gz, ax, ay, az))
-    #print('Ax={0:0.2F} Ay={1:0.2F} Az={2:0.2F}'.format(ax, ay, az))
-    #print('Gx={:6d} Gy={:6d} Gz={:6d} Ax={:6d} Ay={:6d} Az={:6d}'.format(gx, gy, gz, ax, ay, az))
 
     #print('Heading={0:0.2F} Roll={1:0.2F} Pitch={2:0.2F}'.format(heading, roll, pitch))
 
@@ -66,4 +130,23 @@ while True:
     # in meters per second squared):
     #x,y,z = bno.read_gravity()
     # Sleep for a second until the next reading.
-    time.sleep(0.1)
+    time.sleep(max(0, t-time.time()))
+
+plt.rcParams.update({'font.size': 22})
+plt.figure()
+plt.plot(sim_time, cfilt00_rollangle, label = '0', linewidth=2.0)
+plt.plot(sim_time, cfilt02_rollangle, label = '2', linewidth=2.0)
+plt.plot(sim_time, cfilt05_rollangle, label = '5', linewidth=2.0)
+plt.plot(sim_time, cfilt10_rollangle, label = '10', linewidth=2.0)
+plt.plot(sim_time, cfilt20_rollangle, label = '20', linewidth=2.0)
+
+#plt.plot(sim_time, gyro_rollangle, label = 'Gyro Only', linewidth=4.0)
+#plt.plot(sim_time, cfilt_rollangle, label = 'Complementary Filter', linewidth=4.0)
+#plt.plot(sim_time, euler_rollangle,, label = 'On-Board Roll', linewidth=4.0)
+plt.xlabel('Time, [s]')
+plt.ylabel('Theta, [deg]')
+#plt.ylim(-100,100)
+plt.legend()
+plt.grid()
+
+plt.show()

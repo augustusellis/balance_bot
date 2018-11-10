@@ -228,6 +228,7 @@ class BNO055(object):
             #self._gpio.set_high(self.rst)
             # Wait 650 milliseconds in case setting the reset high reset the chip.
             time.sleep(0.65)
+            print('Reset Complete')
         print("Initializing BNO055.")
         self.begin()
 
@@ -248,6 +249,7 @@ class BNO055(object):
             # Swallow an IOError that might be raised by an I2C issue.  Only do
             # this for this very first command to help get the BNO and board's
             # I2C into a clear state ready to accept the next commands.
+            print('Caught IO Error In BNO055 class.')
             pass
         # Make sure we're in config mode and on page 0.
         self._config_mode()
