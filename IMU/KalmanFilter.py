@@ -1,7 +1,7 @@
 import numpy as np
 
 class KalmanFilter():
-    def __init__(self, x0=np.array([0]), Pk0=np.array([0]), Q=np.array([0.001]), R=np.array([0.01])):
+    def __init__(self, x0=np.array([0]), Pk0=np.array([0]), Q=np.array([0.01]), R=np.array([0.01])):
         self.xk_hat = x0
         self.Pk = Pk0
         self.Gk = np.array([0])
