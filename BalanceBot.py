@@ -3,10 +3,13 @@ import pigpio # Remember to enable pigpiod
 import numpy as np
 from collections import deque
 from scipy import stats
+from IMU.IMU import IMU
 from IMU.BNO055 import BNO055
 from IMU.ComplementaryFilter import ComplementaryFilter
 from Controllers.PIDController import PIDController
 from MotorAndEncoder.motor import motor
+from MotorAndEncoder.rotary_encoder import rotary_encoder
+
 #
 ## Moving Average
 #moving_average_length = 2000
@@ -28,6 +31,11 @@ pwmA = 18
 BI1 = 24
 BI2 = 23
 pwmB = 19
+
+enc1A = 1 # CHANGE THESE BEFORE RUNNING ENCODERS
+enc1B = 1
+enc2A = 1
+enc2B = 1
 # Pin3: SDA
 # Pin5: SCL
 
@@ -35,24 +43,19 @@ pwmB = 19
 pi = pigpio.pi()
 
 # Initialize IMU
-bno_rst_pin = 5
-bno_address = 0x28
-bno = BNO055(pi=pi, rst=5, address=0x28, bus=1)
+#bno = BNO055(pi=pi, rst=5)
+imu = IMU(pi=pi, rst=5)
 
-'''
-mpu_address = 0x68
-mpu = mpu6050(mpu_address) # (Power with 3.3 V)
-mpu.set_gyro_range(mpu.GYRO_RANGE_250DEG)
-mpu.calibrate([-1.151972856280762+0.014508260794289421+0.012054316332367384+0.006829248829236366+0.0028514184745767985-0.009651640363941909, -0.421050890585, -0.603576335878, 0.482799144476, 1.09810059143, 0.482799])
-'''
 
-# Initialize Motors
+# Initialize Motors and Encoders
 motor2 = motor(pi,BI1,BI2,pwmB, encoder=False)
 motor1 = motor(pi,AI1,AI2,pwmA, encoder=False)
+#enc1 = rotary_encoder(pi,enc1A,enc1B,countsPerRevolution=12)
+#enc2 = rotary_encoder(pi,enc2A,enc2B,countsPerRevolution=12)
 
 
 # Initialize Controller
-controller = PIDController(15,0,25)
+controller = PIDController(5,0,10)
 
 # Initialize Filter
 '''
@@ -71,15 +74,9 @@ sim_time = []
 
 # Run main loop
 try:
-#    count = 0
-    period = 0.01
-#
-    t = time.time()
-    current_time = time.time()
-    time_start = current_time
 
     # Print system status and self test result.
-    status, self_test, error = bno.get_system_status()
+    status, self_test, error = imu.bno.get_system_status()
     print('System status: {0}'.format(status))
     print('Self test result (0x0F is normal): 0x{0:02X}'.format(self_test))
     # Print out an error if system status is in error mode.
@@ -87,21 +84,22 @@ try:
         print('System error: {0}'.format(error))
         print('See datasheet section 4.3.59 for the meaning.')
 
-    # Print BNO055 software revision and other diagnostic data.
-    sw, bl, accel, mag, gyro = bno.get_revision()
-    print('Software version:   {0}'.format(sw))
-    print('Bootloader version: {0}'.format(bl))
-    print('Accelerometer ID:   0x{0:02X}'.format(accel))
-    print('Magnetometer ID:    0x{0:02X}'.format(mag))
-    print('Gyroscope ID:       0x{0:02X}\n'.format(gyro))
 
-    input('Press enter to begin reading BalanceBot, press Ctrl-C to quit...')
+    input('Press enter to begin running BalanceBot, press Ctrl-C to quit...')
+    period = 0.01
+    t = time.time()
+    current_time = t
+    imu.start_imu()
+
+    r = 0
+    theta_offset = 2.1
     while True:
         # Timing
         previous_time = current_time
         current_time = time.time()
         t = t + period
 
+        '''
         # Get data from IMU
         gx, gy, gz = bno.read_gyroscope()
         ax, ay, az = bno.read_accelerometer()
@@ -109,29 +107,32 @@ try:
 
         # Update Data Filter
         cfilt.update([gx,gy,gz,ax,ay,az], period)
+        '''
 
         # Update Controller
-        controller.update(0-cfilt.rollangle, period) #val_ref - val
+        theta = imu.theta_eul+theta_offset
+        controller.update(r-theta, period) #val_ref - val
 
         # Send Control Signal to Motors
         u1 = controller.get_u()
         u2 = u1
         motor1.set_duty_cycle(u1)
         motor2.set_duty_cycle(u2)
-        print(pitch)
+        print("theta: {}".format(theta))
 
         # Sleep for Remaining Loop Time
         time.sleep(max(0, t-time.time()))
 
+
 except KeyboardInterrupt:
+    imu.stop_imu()
     print('Turning off motors.')
     motor1.set_duty_cycle(0)
     motor2.set_duty_cycle(0)
 
 
-
 except IOError:
+    imu.stop_imu()
     print('IOERROR: Turning off motors.')
     motor1.set_duty_cycle(0)
     motor2.set_duty_cycle(0)
-#

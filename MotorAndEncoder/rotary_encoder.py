@@ -2,7 +2,7 @@
 
 import pigpio
 
-class decoder:
+class rotary_encoder:
     """
     Class to decode mechanical rotary encoder pulses.
     """

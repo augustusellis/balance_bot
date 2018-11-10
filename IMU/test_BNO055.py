@@ -91,7 +91,9 @@ while True: #count < 500:
     cfilt10_rollangle.append(cfilt10.rollangle)
     cfilt20_rollangle.append(cfilt20.rollangle)
 
-    print(np.linalg.norm(m))
+    print(cfilt02.rollangle)
+
+    #print(np.linalg.norm(m))
     #mag_roll = np.arccos(np.dot(m0, m)/(np.linalg.norm(m0)*np.linalg.norm(m)))
     #mag_roll = np.arccos(m[2]/np.linalg.norm(m))
     #print(mag_roll)

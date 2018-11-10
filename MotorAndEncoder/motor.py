@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
 import pigpio
-import MotorAndEncoder.rotary_encoder as rotary_encoder
+from MotorAndEncoder.rotary_encoder import rotary_encoder
 
 class motor:
     """
-    Class to drive motor.
+    Class to drive motor
     """
 
     def __init__(self, pi, gpio1, gpio2, pwm_pin, dec_pin1=7, dec_pin2=8, countsPerRevolution = 227.6*48, encoder=False):
@@ -26,9 +26,10 @@ class motor:
         self.dir = None
 
         if encoder == True:
-            self.decoder = rotary_encoder.decoder(self.pi, self.dec_pin1, self.dec_pin2, countsPerRevolution)
+            self.decoder = rotary_encoder(self.pi, self.dec_pin1, self.dec_pin2, countsPerRevolution)
         else:
-            self.decoder = rotary_encoder.VirtualDecoder(self.pi, self.dec_pin1, self.dec_pin2, countsPerRevolution)
+            pass
+            #self.decoder = rotary_encoder.VirtualDecoder(self.pi, self.dec_pin1, self.dec_pin2, countsPerRevolution)
 
         self.pi.set_mode(self.gpio1, pigpio.OUTPUT)
         self.pi.set_mode(self.gpio2, pigpio.OUTPUT)

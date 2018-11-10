@@ -224,8 +224,7 @@ class BNO055(object):
             self.pi.write(self.rst, 0)
             time.sleep(0.65)
             self.pi.write(self.rst, 1)
-            #self._gpio.setup(self.rst, GPIO.OUT)
-            #self._gpio.set_high(self.rst)
+
             # Wait 650 milliseconds in case setting the reset high reset the chip.
             time.sleep(0.65)
             print('Reset Complete')
