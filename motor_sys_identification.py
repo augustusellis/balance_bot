@@ -15,7 +15,7 @@ AI1 = 14
 AI2 = 15
 pwmA = 18
 
-enc1A = 7 # CHANGE THESE BEFORE RUNNING ENCODERS
+enc1A = 7 # MAKE SURE THESE ARE RIGHT
 enc1B = 8
 
 
@@ -26,26 +26,28 @@ pi = pigpio.pi()
 motor1 = motor(pi,AI1,AI2,pwmA,dec_pin1=enc1A,dec_pin2=enc1B,countsPerRevolution=46.85*12,encoder=True)
 
 v_input = 12
-dc = v_input/14.05*100
+dc = v_input/12*100
 
 motor1.set_duty_cycle(0)
 start_time = time.time()
 t = 0
 pos = motor1.get_pos()
 output_vec = []
-while t < 10:
+while t < 4:
     # Collect data for ten seconds
     t_prev = t
-    t = time.time-start_time()
+    t = time.time()-start_time
 
     pos_prev = pos
     pos = motor1.get_pos()
 
-    output_vec.append('{},{}'.format(t, (pos-pos_prev)/(t-t_prev)))
+    output_vec.append('{},{}\n'.format(t, pos))
 
     if t > 1:
         motor1.set_duty_cycle(dc)
 
+print(pos)
+motor1.set_duty_cycle(0)
 
 # Save data to file:
 f = open('rpm_data.txt','w')

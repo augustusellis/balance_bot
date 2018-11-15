@@ -34,10 +34,10 @@ class rotary_encoder:
         self.pi.set_pull_up_down(gpioA, pigpio.PUD_UP)
         self.pi.set_pull_up_down(gpioB, pigpio.PUD_UP)
 
-        #self.cbA = self.pi.callback(gpioA, pigpio.EITHER_EDGE, self._pulse)
-        #self.cbB = self.pi.callback(gpioB, pigpio.EITHER_EDGE, self._pulse)
-        self.cbA = self.pi.callback(gpioA, pigpio.RISING_EDGE, self._pulseA)
-        self.cbB = self.pi.callback(gpioB, pigpio.RISING_EDGE, self._pulseB)
+        self.cbA = self.pi.callback(gpioA, pigpio.EITHER_EDGE, self._pulse)
+        self.cbB = self.pi.callback(gpioB, pigpio.EITHER_EDGE, self._pulse)
+        #self.cbA = self.pi.callback(gpioA, pigpio.RISING_EDGE, self._pulseA)
+        #self.cbB = self.pi.callback(gpioB, pigpio.RISING_EDGE, self._pulseB)
 
     def _pulse(self, gpio, level, tick):
         """
