@@ -36,15 +36,15 @@ class IMU():
             current_time = time.time()
 
             # Get data from IMU
-            gx, gy, gz = self.bno.read_gyroscope()
-            ax, ay, az = self.bno.read_accelerometer()
+            #gx, gy, gz = self.bno.read_gyroscope()
+            #ax, ay, az = self.bno.read_accelerometer()
             heading, roll, pitch = self.bno.read_euler()
             self.theta_eul = pitch # Control should try to keep pitch at 0
 
             # Update Data Filter
-            self.cfilt.update([gx,gy,gz,ax,ay,az], current_time-previous_time)
+            #self.cfilt.update([gx,gy,gz,ax,ay,az], current_time-previous_time)
 
-            self.theta_filt = self.cfilt.rollangle
+            #self.theta_filt = self.cfilt.rollangle
 
             #print('IMU dT: {}'.format(current_time-previous_time))
 

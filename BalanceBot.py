@@ -23,7 +23,9 @@ from MotorAndEncoder.rotary_encoder import rotary_encoder
 #AyDeq = deque([], moving_average_length)
 #AzDeq = deque([], moving_average_length)
 #'''
+
 # Define pin numbers:
+# Motor and Encoder Pins
 AI1 = 14
 AI2 = 15
 pwmA = 18
@@ -32,19 +34,23 @@ BI1 = 24
 BI2 = 23
 pwmB = 19
 
-enc1A = 7 # CHANGE THESE BEFORE RUNNING ENCODERS
+
+enc1A = 7
 enc1B = 8
-enc2A = 1
-enc2B = 1
-# Pin3: SDA
-# Pin5: SCL
+enc2A = 9
+enc2B = 11
+
+# IMU Pins
+#SDA: 2
+#SCL: 3
+bno_rst = 4
 
 # Initialize Pi
 pi = pigpio.pi()
 
 # Initialize IMU
-#bno = BNO055(pi=pi, rst=5)
-imu = IMU(pi=pi, rst=5)
+bno = BNO055(pi=pi, rst=bno_rst)
+#imu = IMU(pi=pi, rst=5)
 
 
 # Initialize Motors and Encoders
@@ -55,7 +61,10 @@ motor1 = motor(pi,AI1,AI2,pwmA, encoder=False)
 
 
 # Initialize Controller
-controller = PIDController(5,0,10)
+#controller = PIDController(14,0.17,15)
+periodConv = .01/0.004
+controller = PIDController(14,0.175*periodConv,15/periodConv)
+
 
 # Initialize Filter
 '''
@@ -74,9 +83,9 @@ sim_time = []
 
 # Run main loop
 try:
-
+    '''
     # Print system status and self test result.
-    status, self_test, error = imu.bno.get_system_status()
+    status, self_test, error = bno.get_system_status()
     print('System status: {0}'.format(status))
     print('Self test result (0x0F is normal): 0x{0:02X}'.format(self_test))
     # Print out an error if system status is in error mode.
@@ -84,20 +93,24 @@ try:
         print('System error: {0}'.format(error))
         print('See datasheet section 4.3.59 for the meaning.')
 
-
+    '''
     input('Press enter to begin running BalanceBot, press Ctrl-C to quit...')
+
     period = 0.01
     t = time.time()
     current_time = t
-    imu.start_imu()
+    #imu.start_imu()
 
     r = 0
-    theta_offset = 2.1
+    theta_offset = -1.7 #-1.8 #0 #-0.65 #-2 #-1.8
+    count= 0
     while True:
-        # Timing
+        count = count + 1
+        # Do Timing
         previous_time = current_time
         current_time = time.time()
         t = t + period
+
 
         '''
         # Get data from IMU
@@ -110,29 +123,43 @@ try:
         '''
 
         # Update Controller
-        theta = imu.theta_eul+theta_offset
-        controller.update(r-theta, period) #val_ref - val
+        heading, roll, pitch = bno.read_euler()
+        theta = pitch + theta_offset
+        #theta = imu.theta_eul+theta_offset
+        controller.update((r-theta), period) #val_ref - val
 
         # Send Control Signal to Motors
         u1 = controller.get_u()
         u2 = u1
         motor1.set_duty_cycle(u1)
         motor2.set_duty_cycle(u2)
-        print("theta: {}".format(theta))
+        #print("dt: {}, theta: {}, u : {}".format(current_time-previous_time, theta,u1))
+
 
         # Sleep for Remaining Loop Time
+
+        if (count % 25) == 0:
+            if r-theta > 0:
+                print("\033[92m theta: {0: 0.3F} er: {1: 0.3F} up: {2: 0.3F}, uI: {3: 0.3F}, uD: {4: 0.3F} \033[0m".format(theta, controller.eP, controller.eP*controller.kP, controller.eI*controller.kI, controller.eD*controller.kD))
+            else:
+                print("\033[91m theta: {0: 0.3F} er: {1: 0.3F} up: {2: 0.3F}, uI: {3: 0.3F}, uD: {4: 0.3F} \033[0m".format(theta, controller.eP, controller.eP*controller.kP, controller.eI*controller.kI, controller.eD*controller.kD))
+
         time.sleep(max(0, t-time.time()))
+    #imu.stop_imu()
+    print('Turning off motors.')
+    motor1.set_duty_cycle(0)
+    motor2.set_duty_cycle(0)
 
 
 except KeyboardInterrupt:
-    imu.stop_imu()
+    #imu.stop_imu()
     print('Turning off motors.')
     motor1.set_duty_cycle(0)
     motor2.set_duty_cycle(0)
 
 
 except IOError:
-    imu.stop_imu()
+    #imu.stop_imu()
     print('IOERROR: Turning off motors.')
     motor1.set_duty_cycle(0)
     motor2.set_duty_cycle(0)
