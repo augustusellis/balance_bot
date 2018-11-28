@@ -2,3 +2,5 @@
 .ftpconfig
 *.swp
 Adafruit_Python_*
+rpm_data.txt
+.ftpignore

@@ -13,7 +13,7 @@ class motor:
         pi: pigpio pi object
         gpio1: motor pin 1
         gpio2: motor pin 2
-        pwm_pin: hardware pwm pin (there are a limitied number on the pi)
+        pwm_pin: hardware pwm pin (there are a limited number on the pi)
         """
 
         self.pi = pi
