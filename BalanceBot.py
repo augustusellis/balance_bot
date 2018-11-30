@@ -49,7 +49,7 @@ bno_rst = 4
 pi = pigpio.pi()
 
 # Initialize IMU
-bno = BNO055(pi=pi, rst=bno_rst)
+bno = BNO055(pi=pi) #, rst=bno_rst)
 #imu = IMU(pi=pi, rst=5)
 
 
@@ -83,7 +83,7 @@ sim_time = []
 
 # Run main loop
 try:
-    '''
+
     # Print system status and self test result.
     status, self_test, error = bno.get_system_status()
     print('System status: {0}'.format(status))
@@ -93,10 +93,12 @@ try:
         print('System error: {0}'.format(error))
         print('See datasheet section 4.3.59 for the meaning.')
 
-    '''
+
     input('Press enter to begin running BalanceBot, press Ctrl-C to quit...')
 
-    period = 0.01
+    period = 0.0004
+    imu_period = 0.01
+    imu_read_time = time.time();
     t = time.time()
     current_time = t
     #imu.start_imu()
@@ -104,6 +106,10 @@ try:
     r = 0
     theta_offset = -1.7 #-1.8 #0 #-0.65 #-2 #-1.8
     count= 0
+    time_start = time.time()
+
+    theta = 0
+    gx = 0
     while True:
         count = count + 1
         # Do Timing
@@ -111,21 +117,23 @@ try:
         current_time = time.time()
         t = t + period
 
-
-        '''
         # Get data from IMU
-        gx, gy, gz = bno.read_gyroscope()
-        ax, ay, az = bno.read_accelerometer()
-        heading, roll, pitch = bno.read_euler()
-
+        if (current_time - imu_read_time) >= imu_period:
+            # Get New Data
+            gx, gy, gz = bno.read_gyroscope()
+            #ax, ay, az = bno.read_accelerometer()
+            heading, roll, pitch = bno.read_euler()
+            theta = pitch + theta_offset
+            imu_time_prev = imu_read_time
+            imu_read_time = current_time
+        else:
+            # Linear Extrapolation of Data
+            theta = theta + gx*(current_time-previous_time)
         # Update Data Filter
-        cfilt.update([gx,gy,gz,ax,ay,az], period)
-        '''
+        #cfilt.update([gx,gy,gz,ax,ay,az], period)
+
 
         # Update Controller
-        heading, roll, pitch = bno.read_euler()
-        theta = pitch + theta_offset
-        #theta = imu.theta_eul+theta_offset
         controller.update((r-theta), period) #val_ref - val
 
         # Send Control Signal to Motors
@@ -133,17 +141,18 @@ try:
         u2 = u1
         motor1.set_duty_cycle(u1)
         motor2.set_duty_cycle(u2)
-        #print("dt: {}, theta: {}, u : {}".format(current_time-previous_time, theta,u1))
 
+        #if (count % 500) == 0:
+        #    print('IMU: {}'.format(imu_read_time-imu_time_prev))
+        #    print('PER: {}'.format((current_time-time_start)/count))
+
+        #if (count % 25) == 0:
+        #    if r-theta > 0:
+        #        print("\033[92m theta: {0: 0.3F} er: {1: 0.3F} up: {2: 0.3F}, uI: {3: 0.3F}, uD: {4: 0.3F} \033[0m".format(theta, controller.eP, controller.eP*controller.kP, controller.eI*controller.kI, controller.eD*controller.kD))
+        #    else:
+        #        print("\033[91m theta: {0: 0.3F} er: {1: 0.3F} up: {2: 0.3F}, uI: {3: 0.3F}, uD: {4: 0.3F} \033[0m".format(theta, controller.eP, controller.eP*controller.kP, controller.eI*controller.kI, controller.eD*controller.kD))
 
         # Sleep for Remaining Loop Time
-
-        if (count % 25) == 0:
-            if r-theta > 0:
-                print("\033[92m theta: {0: 0.3F} er: {1: 0.3F} up: {2: 0.3F}, uI: {3: 0.3F}, uD: {4: 0.3F} \033[0m".format(theta, controller.eP, controller.eP*controller.kP, controller.eI*controller.kI, controller.eD*controller.kD))
-            else:
-                print("\033[91m theta: {0: 0.3F} er: {1: 0.3F} up: {2: 0.3F}, uI: {3: 0.3F}, uD: {4: 0.3F} \033[0m".format(theta, controller.eP, controller.eP*controller.kP, controller.eI*controller.kI, controller.eD*controller.kD))
-
         time.sleep(max(0, t-time.time()))
     #imu.stop_imu()
     print('Turning off motors.')
@@ -156,6 +165,7 @@ except KeyboardInterrupt:
     print('Turning off motors.')
     motor1.set_duty_cycle(0)
     motor2.set_duty_cycle(0)
+    print('PER: {}'.format((time.time() - time_start)/count))
 
 
 except IOError:
