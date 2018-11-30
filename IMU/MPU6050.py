@@ -8,7 +8,7 @@ Copyright (c) 2015, 2016, 2017 MrTijn/Tijndagamer
 
 import smbus
 
-class mpu6050:
+class MPU6050:
 
     # Global Variables
     GRAVITIY_MS2 = 9.80665
@@ -55,6 +55,8 @@ class mpu6050:
     ACCEL_CONFIG = 0x1C
     GYRO_CONFIG = 0x1B
 
+    SMPLRT_DIV = 0x19
+
     def __init__(self, address, bus=1):
         self.address = address
         self.bus = smbus.SMBus(bus)
@@ -64,7 +66,8 @@ class mpu6050:
         # Set the filter configuration
         data = self.bus.read_byte_data(self.address, self.DLPF_CONFIG)
         data = (data >> 3 << 3) | 0x02
-        self.bus.write_byte_data(self.address, self.DLPF_CONFIG, data)
+        self.bus.write_byte_data(self.address, self.DLPF_CONFIG, 0x00)
+        self.max_gyro_rate()
 
         # sensor biases
         self.GxBias = 0
@@ -74,6 +77,9 @@ class mpu6050:
         self.AyBias = 0
         self.AzBias = 0
     # I2C communication methods
+
+    def max_gyro_rate(self):
+        self.bus.write_byte_data(self.address, self.SMPLRT_DIV, 0x00)
 
     def read_i2c_word(self, register):
         """Read two i2c registers and combine them.
@@ -150,9 +156,11 @@ class mpu6050:
         If g is False, it will return the data in m/s^2
         Returns a dictionary with the measurement results.
         """
-        x = self.read_i2c_word(self.ACCEL_XOUT0)
+        #x = self.read_i2c_word(self.ACCEL_XOUT0)
+
         y = self.read_i2c_word(self.ACCEL_YOUT0)
         z = self.read_i2c_word(self.ACCEL_ZOUT0)
+        x = y
 
         accel_scale_modifier = None
         accel_range = self.read_accel_range(True)
@@ -174,12 +182,12 @@ class mpu6050:
         z = z / accel_scale_modifier - self.AzBias
 
         if g is True:
-            return {'x': x, 'y': y, 'z': z}
+            return (x, y, z)
         elif g is False:
             x = x * self.GRAVITIY_MS2
             y = y * self.GRAVITIY_MS2
             z = z * self.GRAVITIY_MS2
-            return {'x': x, 'y': y, 'z': z}
+            return (x, y, z)
 
     def set_gyro_range(self, gyro_range):
         """Sets the range of the gyroscope to range.
@@ -223,8 +231,11 @@ class mpu6050:
         Returns the read values in a dictionary.
         """
         x = self.read_i2c_word(self.GYRO_XOUT0)
-        y = self.read_i2c_word(self.GYRO_YOUT0)
-        z = self.read_i2c_word(self.GYRO_ZOUT0)
+        y = x
+        z = x
+
+        #y = self.read_i2c_word(self.GYRO_YOUT0)
+        #z = self.read_i2c_word(self.GYRO_ZOUT0)
 
         gyro_scale_modifier = None
         gyro_range = self.read_gyro_range(True)
@@ -245,7 +256,7 @@ class mpu6050:
         y = y / gyro_scale_modifier - self.GyBias
         z = z / gyro_scale_modifier - self.GzBias
 
-        return {'x': x, 'y': y, 'z': z}
+        return (x, y, z)
 
     def get_all_data(self):
         """Reads and returns all the available data."""
@@ -264,13 +275,13 @@ class mpu6050:
         self.AzBias = biases[5]
 
 if __name__ == "__main__":
-    mpu = mpu6050(0x68)
+    mpu = MPU6050(0x68)
     print(mpu.get_temp())
     accel_data = mpu.get_accel_data()
-    print(accel_data['x'])
-    print(accel_data['y'])
-    print(accel_data['z'])
+    print(accel_data[0])
+    print(accel_data[1])
+    print(accel_data[2])
     gyro_data = mpu.get_gyro_data()
-    print(gyro_data['x'])
-    print(gyro_data['y'])
-    print(gyro_data['z'])
+    print(gyro_data[0])
+    print(gyro_data[1])
+    print(gyro_data[2])
