@@ -11,19 +11,6 @@ from Controllers.PIDController import PIDController
 from MotorAndEncoder.motor import motor
 from MotorAndEncoder.rotary_encoder import rotary_encoder
 
-#
-## Moving Average
-#moving_average_length = 2000
-#errorDeque = deque([], moving_average_length)
-#uDeque = deque([], moving_average_length)
-#'''
-#GxDeq = deque([], moving_average_length)
-#GyDeq = deque([], moving_average_length)
-#GzDeq = deque([], moving_average_length)
-#AxDeq = deque([], moving_average_length)
-#AyDeq = deque([], moving_average_length)
-#AzDeq = deque([], moving_average_length)
-#'''
 
 # Define pin numbers:
 # Motor and Encoder Pins
@@ -31,20 +18,20 @@ AI1 = 14
 AI2 = 15
 pwmA = 18
 
-BI1 = 24
-BI2 = 23
+BI1 = 23
+BI2 = 24
 pwmB = 19
 
 
 enc1A = 7
 enc1B = 8
-enc2A = 9
-enc2B = 11
+enc2A = 11
+enc2B = 9
 
 # IMU Pins
 #SDA: 2
 #SCL: 3
-bno_rst = 4
+mpu_vio = 4
 
 # Initialize Pi
 pi = pigpio.pi()
@@ -52,28 +39,22 @@ pi = pigpio.pi()
 # Initialize IMU
 #bno = BNO055(pi=pi) #, rst=bno_rst)
 #imu = IMU(pi=pi, rst=5)
-mpu = MPU6050(0x68)
+mpu = MPU6050(0x68, mpu_vio)
 
 
 # Initialize Motors and Encoders
-motor2 = motor(pi,BI1,BI2,pwmB, encoder=False)
-motor1 = motor(pi,AI1,AI2,pwmA, encoder=False)
+motor2 = motor(pi,BI1,BI2,pwmB,enc2A,enc2B, encoder=True)
+motor1 = motor(pi,AI1,AI2,pwmA,enc1A,enc1B, encoder=True)
 #enc1 = rotary_encoder(pi,enc1A,enc1B,countsPerRevolution=12)
 #enc2 = rotary_encoder(pi,enc2A,enc2B,countsPerRevolution=12)
 
 
 # Initialize Controller
 #controller = PIDController(14,0.17,15)
-periodConv = .01/0.004
-controller = PIDController(14,0.175*periodConv,15/periodConv)
+controller = PIDController(14,0,0)
 
 
 # Initialize Filter
-'''
-Q = 0.001
-R = 250*0.05
-kalman = KalmanFilter(np.array([[0]]), np.array([[1]]), np.array([[Q]]), np.array([[R]]))
-'''
 cfilt = ComplementaryFilter(alpha=0.98, rollangle=0)
 
 # Initialize Data Storage Lists
@@ -112,7 +93,7 @@ try:
 
     theta = 0
     gx = 0
-    while count < 5000:
+    while True:
         count = count + 1
         # Do Timing
         previous_time = current_time
@@ -141,13 +122,18 @@ try:
         controller.update((r-theta), period) #val_ref - val
 
         # Send Control Signal to Motors
-        u1 = controller.get_u()
-        u2 = u1
+        #u1 = controller.get_u()
+        #u2 = u1
+        r_pos = 46.85*12 # One Revolution
+        k = 1
+        u1 = k*(r_pos-motor1.get_pos())
+        u2 = k*(r_pos-motor2.get_pos())
         motor1.set_duty_cycle(u1)
         motor2.set_duty_cycle(u2)
 
-        if (count % 2) == 0:
-            print('Theta: {}'.format(cfilt.rollangle))
+        if (count % 4) == 0:
+            #print('Theta: {}'.format(cfilt.rollangle))
+            print('motor1: {}, motor2: {}'.format(motor1.get_pos(),motor2.get_pos()))
             #print('PER: {}'.format((current_time-time_start)/count))
 
         #if (count % 25) == 0:

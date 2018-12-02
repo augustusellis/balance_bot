@@ -7,6 +7,7 @@ Copyright (c) 2015, 2016, 2017 MrTijn/Tijndagamer
 """
 
 import smbus
+import pigpio
 
 class MPU6050:
 
@@ -57,7 +58,11 @@ class MPU6050:
 
     SMPLRT_DIV = 0x19
 
-    def __init__(self, address, bus=1):
+    def __init__(self, address, vio, bus=1):
+        pi = pigpio.pi()
+        pi.set_mode(vio, pigpio.OUTPUT)
+        pi.write(vio, 1)
+
         self.address = address
         self.bus = smbus.SMBus(bus)
         # Wake up the MPU-6050 since it starts in sleep mode
