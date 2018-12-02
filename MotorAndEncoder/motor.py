@@ -8,7 +8,7 @@ class motor:
     Class to drive motor
     """
 
-    def __init__(self, pi, gpio1, gpio2, pwm_pin, dec_pin1, dec_pin2, countsPerRevolution = 227.6*48, encoder=False):
+    def __init__(self, pi, gpio1, gpio2, pwm_pin, dec_pin1, dec_pin2, countsPerRevolution = 46.85*12, encoder=False):
         """
         pi: pigpio pi object
         gpio1: motor pin 1
@@ -44,7 +44,7 @@ class motor:
         #self.pi.set_pull_up_down(gpioB, pigpio.PUD_UP)
 
     def get_pos(self):
-        return self.decoder.pos
+        return self.decoder.get_position()
 
     def set_duty_cycle(self, percent_cycle):
         '''

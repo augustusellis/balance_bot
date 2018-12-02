@@ -8,7 +8,7 @@ class rotary_encoder:
     POSITIVE POSITION = CCW
     """
 
-    def __init__(self, pi, gpioA, gpioB, countsPerRevolution=360):
+    def __init__(self, pi, gpioA, gpioB, countsPerRevolution=46.85*12):
         """
         Instantiate the class with the pi and gpios connected to
         rotary encoder contacts A and B.  The common contact
@@ -98,7 +98,7 @@ class VirtualDecoder:
     Virtual Class to Be Used when there is no encoder on the motor.
     """
 
-    def __init__(self, pi, gpioA, gpioB, countsPerRevolution=360):
+    def __init__(self, pi, gpioA, gpioB, countsPerRevolution=1):
 
         self.pi = pi
         self.gpioA = gpioA
