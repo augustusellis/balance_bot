@@ -55,7 +55,7 @@ controller = PIDController(14,0,0)
 
 
 # Initialize Filter
-cfilt = ComplementaryFilter(alpha=0.98, rollangle=0)
+cfilt = ComplementaryFilter(alpha=0.98, rollangle=0, angleOffset=0)
 
 # Initialize Data Storage Lists
 omega_raw = []
@@ -100,8 +100,7 @@ try:
         current_time = time.time()
         t = t + period
 
-        ax, ay, az = mpu.get_accel_data()
-        gx, gy, gz = mpu.get_gyro_data()
+        gx, gy, gz, _, ax, ay, az = mpu.get_all_data()
         # Get data from IMU
         #if True: #(current_time - imu_read_time) >= imu_period:
             # Get New Data
@@ -119,17 +118,17 @@ try:
 
         #theta = 0
         # Update Controller
-        controller.update((r-theta), period) #val_ref - val
+        controller.update((r-cfilt.rollangle)) #val_ref - val
 
         # Send Control Signal to Motors
-        #u1 = controller.get_u()
+        #u1 = controller.u
         #u2 = u1
-        r_pos = 46.85*12 # One Revolution
-        k = 1
-        u1 = k*(r_pos-motor1.get_pos())
-        u2 = k*(r_pos-motor2.get_pos())
-        motor1.set_duty_cycle(u1)
-        motor2.set_duty_cycle(u2)
+        #r_pos = 46.85*12 # One Revolution
+        #k = 1
+        #u1 = k*(r_pos-motor1.get_pos())
+        #u2 = k*(r_pos-motor2.get_pos())
+        motor1.set_duty_cycle(controller.u)
+        motor2.set_duty_cycle(controller.u)
 
         if (count % 4) == 0:
             #print('Theta: {}'.format(cfilt.rollangle))
@@ -144,6 +143,7 @@ try:
 
         # Sleep for Remaining Loop Time
         time.sleep(max(0, t-time.time()))
+        
     print('PER: {}'.format((time.time() - time_start)/count))
     #imu.stop_imu()
     print('Turning off motors.')

@@ -6,8 +6,7 @@ Released under the MIT License
 Copyright (c) 2015, 2016, 2017 MrTijn/Tijndagamer
 """
 
-import smbus
-import pigpio
+import smbus, pigpio
 
 class MPU6050:
 
@@ -63,8 +62,10 @@ class MPU6050:
         pi.set_mode(vio, pigpio.OUTPUT)
         pi.write(vio, 1)
 
+        # Store I2C Device Address
         self.address = address
         self.bus = smbus.SMBus(bus)
+
         # Wake up the MPU-6050 since it starts in sleep mode
         self.bus.write_byte_data(self.address, self.PWR_MGMT_1, 0x00)
 
@@ -72,39 +73,31 @@ class MPU6050:
         data = self.bus.read_byte_data(self.address, self.DLPF_CONFIG)
         data = (data >> 3 << 3) | 0x02
         self.bus.write_byte_data(self.address, self.DLPF_CONFIG, 0x00)
-        self.max_gyro_rate()
 
-        # sensor biases
-        self.GxBias = 0
-        self.GyBias = 0
-        self.GzBias = 0
-        self.AxBias = 0
-        self.AyBias = 0
-        self.AzBias = 0
-    # I2C communication methods
-
-    def max_gyro_rate(self):
+        # Set Gyro Sample Rate
         self.bus.write_byte_data(self.address, self.SMPLRT_DIV, 0x00)
 
-    def read_i2c_word(self, register):
-        """Read two i2c registers and combine them.
+        # Set Sensor Ranges and Scales
+        self.set_gyro_range(self.GYRO_RANGE_250DEG)
+        self.set_accel_range(self.ACCEL_RANGE_2G)
 
-        register -- the first register to read from.
-        Returns the combined read results.
-        """
-        # Read the data from the registers
-        high = self.bus.read_byte_data(self.address, register)
-        low = self.bus.read_byte_data(self.address, register + 1)
+        # sensor biases
+        self.calibrate([0]*6)
 
-        value = (high << 8) + low
+    # I2C communication methods
+    def read_vector(self, address, count=3):
+        # Read count number of 16-bit signed values starting from the provided
+        # address. Returns a tuple of the values that were read.
+        data = bytearray(self.bus.read_i2c_block_data(self.address, address, count*2))
+        result = [0]*count
+        for i in range(count):
+            result[i] = ((data[i*2] << 8) | data[i*2+1]) & 0xFFFF
+            if result[i] > 32767:
+                result[i] -= 65536
+        return result
 
-        if (value >= 0x8000):
-            return -((65535 - value) + 1)
-        else:
-            return value
 
     # MPU-6050 Methods
-
     def get_temp(self):
         """Reads the temperature from the onboard temperature sensor of the MPU-6050.
 
@@ -129,6 +122,18 @@ class MPU6050:
 
         # Write the new range to the ACCEL_CONFIG register
         self.bus.write_byte_data(self.address, self.ACCEL_CONFIG, accel_range)
+
+        if accel_range == self.ACCEL_RANGE_2G:
+            self.accel_scale = self.ACCEL_SCALE_MODIFIER_2G
+        elif accel_range == self.ACCEL_RANGE_4G:
+            self.accel_scale  = self.ACCEL_SCALE_MODIFIER_4G
+        elif accel_range == self.ACCEL_RANGE_8G:
+            self.accel_scale  = self.ACCEL_SCALE_MODIFIER_8G
+        elif accel_range == self.ACCEL_RANGE_16G:
+            self.accel_scale  = self.ACCEL_SCALE_MODIFIER_16G
+        else:
+            print("Unkown range - accel_scale_modifier set to self.ACCEL_SCALE_MODIFIER_2G")
+            self.accel_scale  = self.ACCEL_SCALE_MODIFIER_2G
 
     def read_accel_range(self, raw = False):
         """Reads the range the accelerometer is set to.
@@ -161,30 +166,12 @@ class MPU6050:
         If g is False, it will return the data in m/s^2
         Returns a dictionary with the measurement results.
         """
-        #x = self.read_i2c_word(self.ACCEL_XOUT0)
+        x, y, z = self.read_vector(self.ACCEL_XOUT0, 3)
 
-        y = self.read_i2c_word(self.ACCEL_YOUT0)
-        z = self.read_i2c_word(self.ACCEL_ZOUT0)
-        x = y
 
-        accel_scale_modifier = None
-        accel_range = self.read_accel_range(True)
-
-        if accel_range == self.ACCEL_RANGE_2G:
-            accel_scale_modifier = self.ACCEL_SCALE_MODIFIER_2G
-        elif accel_range == self.ACCEL_RANGE_4G:
-            accel_scale_modifier = self.ACCEL_SCALE_MODIFIER_4G
-        elif accel_range == self.ACCEL_RANGE_8G:
-            accel_scale_modifier = self.ACCEL_SCALE_MODIFIER_8G
-        elif accel_range == self.ACCEL_RANGE_16G:
-            accel_scale_modifier = self.ACCEL_SCALE_MODIFIER_16G
-        else:
-            print("Unkown range - accel_scale_modifier set to self.ACCEL_SCALE_MODIFIER_2G")
-            accel_scale_modifier = self.ACCEL_SCALE_MODIFIER_2G
-
-        x = x / accel_scale_modifier - self.AxBias
-        y = y / accel_scale_modifier - self.AyBias
-        z = z / accel_scale_modifier - self.AzBias
+        x = x / self.accel_scale - self.AxBias
+        y = y / self.accel_scale - self.AyBias
+        z = z / self.accel_scale - self.AzBias
 
         if g is True:
             return (x, y, z)
@@ -205,6 +192,18 @@ class MPU6050:
 
         # Write the new range to the ACCEL_CONFIG register
         self.bus.write_byte_data(self.address, self.GYRO_CONFIG, gyro_range)
+
+        if gyro_range == self.GYRO_RANGE_250DEG:
+            self.gyro_scale = self.GYRO_SCALE_MODIFIER_250DEG
+        elif gyro_range == self.GYRO_RANGE_500DEG:
+            self.gyro_scale = self.GYRO_SCALE_MODIFIER_500DEG
+        elif gyro_range == self.GYRO_RANGE_1000DEG:
+            self.gyro_scale = self.GYRO_SCALE_MODIFIER_1000DEG
+        elif gyro_range == self.GYRO_RANGE_2000DEG:
+            self.gyro_scale = self.GYRO_SCALE_MODIFIER_2000DEG
+        else:
+            print("Unkown range - gyro_scale_modifier set to self.GYRO_SCALE_MODIFIER_250DEG")
+            self.gyro_scale = self.GYRO_SCALE_MODIFIER_250DEG
 
     def read_gyro_range(self, raw = False):
         """Reads the range the gyroscope is set to.
@@ -231,45 +230,30 @@ class MPU6050:
                 return -1
 
     def get_gyro_data(self):
-        """Gets and returns the X, Y and Z values from the gyroscope.
-
-        Returns the read values in a dictionary.
         """
-        x = self.read_i2c_word(self.GYRO_XOUT0)
-        y = x
-        z = x
+        Gets and returns the X, Y and Z values from the gyroscope.
+        """
 
-        #y = self.read_i2c_word(self.GYRO_YOUT0)
-        #z = self.read_i2c_word(self.GYRO_ZOUT0)
+        x, y, z = self.read_vector(self.GYRO_XOUT0)
 
-        gyro_scale_modifier = None
-        gyro_range = self.read_gyro_range(True)
-
-        if gyro_range == self.GYRO_RANGE_250DEG:
-            gyro_scale_modifier = self.GYRO_SCALE_MODIFIER_250DEG
-        elif gyro_range == self.GYRO_RANGE_500DEG:
-            gyro_scale_modifier = self.GYRO_SCALE_MODIFIER_500DEG
-        elif gyro_range == self.GYRO_RANGE_1000DEG:
-            gyro_scale_modifier = self.GYRO_SCALE_MODIFIER_1000DEG
-        elif gyro_range == self.GYRO_RANGE_2000DEG:
-            gyro_scale_modifier = self.GYRO_SCALE_MODIFIER_2000DEG
-        else:
-            print("Unkown range - gyro_scale_modifier set to self.GYRO_SCALE_MODIFIER_250DEG")
-            gyro_scale_modifier = self.GYRO_SCALE_MODIFIER_250DEG
-
-        x = x / gyro_scale_modifier - self.GxBias
-        y = y / gyro_scale_modifier - self.GyBias
-        z = z / gyro_scale_modifier - self.GzBias
+        x = x / self.gyro_scale - self.GxBias
+        y = y / self.gyro_scale - self.GyBias
+        z = z / self.gyro_scale - self.GzBias
 
         return (x, y, z)
 
     def get_all_data(self):
         """Reads and returns all the available data."""
-        temp = self.get_temp()
-        accel = self.get_accel_data()
-        gyro = self.get_gyro_data()
+        gx, gy, gz, temp, ax, ay, az = self.read_vector(self.GYRO_XOUT0,7)
 
-        return [accel, gyro, temp]
+        gx = gx / self.gyro_scale - self.GxBias
+        gy = gy / self.gyro_scale - self.GyBias
+        gz = gz / self.gyro_scale - self.GzBias
+        ax = ax / self.accel_scale - self.AxBias
+        ay = ay / self.accel_scale - self.AyBias
+        az = az / self.accel_scale - self.AzBias
+
+        return (gx, gy, gz, temp, ax, ay, az)
 
     def calibrate(self, biases):
         self.GxBias = biases[0]
@@ -278,6 +262,25 @@ class MPU6050:
         self.AxBias = biases[3]
         self.AyBias = biases[4]
         self.AzBias = biases[5]
+
+    def read_i2c_word(self, register):
+        """Read two i2c registers and combine them.
+
+        register -- the first register to read from.
+        Returns the combined read results.
+        """
+        # Read the data from the registers
+        high = self.bus.read_byte_data(self.address, register)
+        low = self.bus.read_byte_data(self.address, register + 1)
+        value = (high << 8) + low
+        print('readWord: {:b}'.format(high))
+
+        if (value >= 0x8000):
+            #print(-((65535 - value) + 1))
+            return -((65535 - value) + 1)
+        else:
+            #print(value)
+            return value
 
 if __name__ == "__main__":
     mpu = MPU6050(0x68)
