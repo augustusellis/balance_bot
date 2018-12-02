@@ -8,7 +8,7 @@ class motor:
     Class to drive motor
     """
 
-    def __init__(self, pi, gpio1, gpio2, pwm_pin, dec_pin1=7, dec_pin2=8, countsPerRevolution = 227.6*48, encoder=False):
+    def __init__(self, pi, gpio1, gpio2, pwm_pin, dec_pin1, dec_pin2, countsPerRevolution = 227.6*48, encoder=False):
         """
         pi: pigpio pi object
         gpio1: motor pin 1
@@ -19,7 +19,7 @@ class motor:
         self.pi = pi
         self.gpio1 = gpio1
         self.gpio2 = gpio2
-        self.pwm_freq = 125000 # this is the maximum allowable frequency
+        self.pwm_freq = 8000 # this is the maximum allowable frequency
         self.pwm_pin = pwm_pin
         self.dec_pin1 = dec_pin1
         self.dec_pin2 = dec_pin2
@@ -33,6 +33,9 @@ class motor:
 
         self.pi.set_mode(self.gpio1, pigpio.OUTPUT)
         self.pi.set_mode(self.gpio2, pigpio.OUTPUT)
+
+        self.pi.set_PWM_frequency(self.pwm_pin, self.pwm_freq)
+        self.pi.set_PWM_range(self.pwm_pin, 10000)
 
         self.set_duty_cycle(0)
         self.set_direction(1)
@@ -59,13 +62,18 @@ class motor:
         # check duty cycle bounds
         if percent_cycle >= 100:
             percent_cycle = 100
+        elif percent_cycle == 0:
+            pass
+        elif percent_cycle <= 5:
+            percent_cycle = 5
 
         # convert to pwm scale (integer 0 - 1M)
-        duty_cycle = int(percent_cycle*10000)
+        duty_cycle = int(percent_cycle*100)
 
         # send new PWM and direction commands
         self.set_direction(new_direction)
-        self.pi.hardware_PWM(self.pwm_pin, self.pwm_freq, duty_cycle)
+        #self.pi.hardware_PWM(self.pwm_pin, self.pwm_freq, duty_cycle)
+        self.pi.set_PWM_dutycycle(self.pwm_pin, duty_cycle)
 
     def set_direction(self, new_direction):
         if new_direction != self.dir:

@@ -82,7 +82,12 @@ class MPU6050:
         self.set_accel_range(self.ACCEL_RANGE_2G)
 
         # sensor biases
-        self.calibrate([0]*6)
+        self.calibrate([0.63689312977099133,
+                        -0.48637862595419817,
+                        -0.43438625954198568,
+                        0.077993408203125003,
+                        0.017830322265625,
+                        -0.081621337890625])
 
     # I2C communication methods
     def read_vector(self, address, count=3):
@@ -244,7 +249,7 @@ class MPU6050:
 
     def get_all_data(self):
         """Reads and returns all the available data."""
-        gx, gy, gz, temp, ax, ay, az = self.read_vector(self.GYRO_XOUT0,7)
+        ax, ay, az, temp, gx, gy, gz = self.read_vector(self.ACCEL_XOUT0,7)
 
         gx = gx / self.gyro_scale - self.GxBias
         gy = gy / self.gyro_scale - self.GyBias

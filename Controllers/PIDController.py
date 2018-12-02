@@ -22,13 +22,14 @@ class PIDController():
         if abs(error) < 90:
             self.error = error
         else:
-            print("#### WARNING error: {}".format(error))
+            pass
+            #print("#### WARNING error: {}".format(error))
 
         self.eP = self.error
         self.eD = self.error - self.errorPrevious
         self.eI = self.eI + self.error
 
-        #print("eP: {}, eI: {} ed: {}".format(self.eP, self.eI, self.eD))
+
 
         self.u = self.eP*self.kP + self.eI*self.kI + self.eD*self.kD
 

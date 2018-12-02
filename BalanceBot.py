@@ -1,6 +1,9 @@
 import time
 import pigpio # Remember to enable pigpiod
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 from collections import deque
 from scipy import stats
 from IMU.IMU import IMU
@@ -50,16 +53,22 @@ motor1 = motor(pi,AI1,AI2,pwmA,enc1A,enc1B, encoder=True)
 
 
 # Initialize Controller
-#controller = PIDController(14,0.17,15)
-controller = PIDController(14,0,0)
+periodConv = 0.01/0.0021
+K = 10
+Ti = 30000
+Td = 11
+controller = PIDController(K,K/Ti,K*Td)#K/Ti,K*Td)
+#controller = PIDController(14,0.175*periodConv,15/periodConv)
 
 
 # Initialize Filter
-cfilt = ComplementaryFilter(alpha=0.98, rollangle=0, angleOffset=0)
+cfilt = ComplementaryFilter(alpha=0.95, rollangle=0, angleOffset=0.56576161028555327)#1.0570298272571372)
+
 
 # Initialize Data Storage Lists
 omega_raw = []
 theta_raw = []
+u_raw = []
 omega_kalman = []
 theta_kalman = []
 sim_time = []
@@ -79,7 +88,7 @@ try:
 
     input('Press enter to begin running BalanceBot, press Ctrl-C to quit...')
 
-    period = 0.002
+    period = 0.0021
     imu_period = 0.01
     imu_read_time = time.time();
     t = time.time()
@@ -87,7 +96,6 @@ try:
     #imu.start_imu()
 
     r = 0
-    theta_offset = 5.72 #-1.7 #-1.8 #0 #-0.65 #-2 #-1.8
     count= 0
     time_start = time.time()
 
@@ -98,6 +106,8 @@ try:
         # Do Timing
         previous_time = current_time
         current_time = time.time()
+        #if current_time-previous_time>period:
+        #    print('\033[91m WARNING: TOO SLOW \033[0m')
         t = t + period
 
         gx, gy, gz, _, ax, ay, az = mpu.get_all_data()
@@ -114,7 +124,10 @@ try:
             # Linear Extrapolation of Data
             #theta = theta + gx*(current_time-previous_time)
         # Update Data Filter
-        cfilt.update([gx,gy,gz,ax,ay,az], period)
+        cfilt.update([gx,gy,gz,ax,ay,az], current_time-previous_time)
+
+        if abs(cfilt.rollangle) > 35:
+            break
 
         #theta = 0
         # Update Controller
@@ -130,9 +143,11 @@ try:
         motor1.set_duty_cycle(controller.u)
         motor2.set_duty_cycle(controller.u)
 
-        if (count % 4) == 0:
-            #print('Theta: {}'.format(cfilt.rollangle))
-            print('motor1: {}, motor2: {}'.format(motor1.get_pos(),motor2.get_pos()))
+
+        if (count % 1) == 0:
+            print("theta: {:+4.2F}, uP: {:+8.3F}, uI: {:+8.3F} ud: {:+8.3F} u: {:+8.2F}".format(cfilt.rollangle, controller.eP*controller.kP, controller.eI*controller.kI, controller.eD*controller.kD, controller.u))
+            #print('Theta: {0:.1f},  u: {1:.1f}'.format(cfilt.rollangle,controller.u))
+            #print('gx: {}, gy: {}, gz: {}, ax: {}, ay: {}, az: {}'.format(gx,gy,gz,ax,ay,az))
             #print('PER: {}'.format((current_time-time_start)/count))
 
         #if (count % 25) == 0:
@@ -141,14 +156,33 @@ try:
         #    else:
         #        print("\033[91m theta: {0: 0.3F} er: {1: 0.3F} up: {2: 0.3F}, uI: {3: 0.3F}, uD: {4: 0.3F} \033[0m".format(theta, controller.eP, controller.eP*controller.kP, controller.eI*controller.kI, controller.eD*controller.kD))
 
+        #omega_raw.append((cfilt.rollangle,0))
+        theta_raw.append(cfilt.rollangle)
+        u_raw.append(controller.u)
+        sim_time.append(current_time)
         # Sleep for Remaining Loop Time
         time.sleep(max(0, t-time.time()))
-        
+
+
+    #print(tuple(np.mean(omega_raw,axis=0)))
+
     print('PER: {}'.format((time.time() - time_start)/count))
     #imu.stop_imu()
-    print('Turning off motors.')
+    print('Angle too high, turning off motors.')
     motor1.set_duty_cycle(0)
     motor2.set_duty_cycle(0)
+
+
+    plt.figure(0)
+    plt.plot(np.array(sim_time)-sim_time[0],np.array(theta_raw),label='theta')
+    plt.plot(np.array(sim_time)-sim_time[0],np.array(u_raw),label='u')
+    #plt.title('rpm v time')
+    plt.xlabel('Time [s]')
+    plt.ylabel('Magnitude')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
 
 
 except KeyboardInterrupt:
