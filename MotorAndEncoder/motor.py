@@ -64,8 +64,8 @@ class motor:
             percent_cycle = 100
         elif percent_cycle == 0:
             pass
-        elif percent_cycle <= 5:
-            percent_cycle = 5
+        elif percent_cycle <= 10:
+            percent_cycle = 10
 
         # convert to pwm scale (integer 0 - 1M)
         duty_cycle = int(percent_cycle*100)

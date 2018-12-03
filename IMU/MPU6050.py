@@ -72,7 +72,7 @@ class MPU6050:
         # Set the filter configuration
         data = self.bus.read_byte_data(self.address, self.DLPF_CONFIG)
         data = (data >> 3 << 3) | 0x02
-        self.bus.write_byte_data(self.address, self.DLPF_CONFIG, 0x00)
+        self.bus.write_byte_data(self.address, self.DLPF_CONFIG, data)
 
         # Set Gyro Sample Rate
         self.bus.write_byte_data(self.address, self.SMPLRT_DIV, 0x00)
@@ -82,9 +82,10 @@ class MPU6050:
         self.set_accel_range(self.ACCEL_RANGE_2G)
 
         # sensor biases
-        self.calibrate([0.63689312977099133,
-                        -0.48637862595419817,
-                        -0.43438625954198568,
+
+        self.calibrate([-1.1766396946564714,
+                        -0.47155038167939273,
+                        -0.46326488549618855,
                         0.077993408203125003,
                         0.017830322265625,
                         -0.081621337890625])

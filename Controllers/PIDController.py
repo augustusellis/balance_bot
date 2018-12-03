@@ -29,7 +29,10 @@ class PIDController():
         self.eD = self.error - self.errorPrevious
         self.eI = self.eI + self.error
 
-
+        if self.eI*self.kI > 100: # limit controller wind-up
+            self.eI = 100/self.kI
+        if self.eI*self.kI < -100:
+            self.eI = -100/self.kI
 
         self.u = self.eP*self.kP + self.eI*self.kI + self.eD*self.kD
 
