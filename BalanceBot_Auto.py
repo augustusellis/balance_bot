@@ -192,7 +192,7 @@ try:
         #u_raw.append(balance_controller.u)
         #sim_time.append(current_time)
         # Sleep for Remaining Loop Time
-        time.sleep(max(0, t-time.time())
+        time.sleep(max(0, t-time.time()))
 
 
     #print(tuple(np.mean(omega_raw,axis=0)))

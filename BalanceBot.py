@@ -1,9 +1,7 @@
 import time
 import pigpio # Remember to enable pigpiod
 import numpy as np
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
+from math import copysign
 from collections import deque
 #from scipy import stats
 from IMU.IMU import IMU
@@ -70,13 +68,14 @@ period = 0.0021
 #balance_controller = PIDController(10,0.21,65) # Worked with adjusted offset, large oscillations
 #balance_controller = PIDController(10,0.21,67) # Worked with adjusted offset, some Kd jitter
 balance_controller = PIDController(10,0.225,63) # Worked with adjusted offset aimed at reducing x oscillations
+#balance_controller = PIDController(10,0.17,90)
 
 # Initialize Filter
-cfilt = ComplementaryFilter(alpha=0.98, rollangle=0, angleOffset=1.1359977682671618*0.59)#.56576161028555327/2)#1.0570298272571372)
+cfilt = ComplementaryFilter(alpha=0.98, rollangle=0, angleOffset=0.730238683)#.56576161028555327/2)#1.0570298272571372)
 
 # Initialize Data Storage Lists
 omega_raw = []
-#theta_raw = []
+theta_raw = []
 #u_raw = []
 #omega_kalman = []
 #theta_kalman = []
@@ -137,8 +136,8 @@ try:
 
         ## Update Control Signals
         x = ((np.mean(M1_diff_deck)+np.mean(M2_diff_deck))/2)*10
-        error = (r-cfilt.rollangle) # + 0.07*min([(x - xref), 2.5])
-        balance_controller.update(error)#-0.1*motor1.get_pos())
+        error = (r-cfilt.rollangle) + 0.025*copysign(1,x-xref)*min([abs(x - xref), 2.5])
+        balance_controller.update(error)
         #M1_controller.update( balance_controller.u - RPS_M1)
         #M2_controller.update( balance_controller.u - RPS_M2)
 
@@ -171,24 +170,27 @@ try:
         #    else:
         #        print("\033[91m theta: {0: 0.3F} er: {1: 0.3F} up: {2: 0.3F}, uI: {3: 0.3F}, uD: {4: 0.3F} \033[0m".format(theta, controller.eP, controller.eP*controller.kP, controller.eI*controller.kI, controller.eD*controller.kD))
 
-        #omega_raw.append((cfilt.rollangle,0))
-        #theta_raw.append(cfilt.rollangle)
+        omega_raw.append(gx)
+        theta_raw.append(cfilt.rollangle)
         #u_raw.append(balance_controller.u)
         #sim_time.append(current_time)
         # Sleep for Remaining Loop Time
-        time.sleep(max(0, t-time.time())
+        time.sleep(max(0, t-time.time()))
 
 
     #print(tuple(np.mean(omega_raw,axis=0)))
 
     print('PER: {}'.format((time.time() - time_start)/count))
-    #print(np.mean(theta_raw))
+    print(np.mean(theta_raw))
+    print(np.mean(omega_raw))
     #imu.stop_imu()
     print('Angle too high, turning off motors: {}'.format(cfilt.rollangle))
     motor1.set_duty_cycle(0)
     motor2.set_duty_cycle(0)
+    pi.write(led1, 0)
+    pi.write(led2, 0)
 
-
+    '''
     plt.figure(0)
     plt.rcParams.update({'font.size': 22})
     plt.plot(np.array(sim_time)-sim_time[0],np.array(theta_raw),label='theta')
@@ -200,6 +202,7 @@ try:
     plt.grid(True)
     plt.savefig('BB_run_.png'.format(1))
     #plt.show()
+    '''
 
 
 
@@ -209,6 +212,8 @@ except KeyboardInterrupt:
     print('Turning off motors.')
     motor1.set_duty_cycle(0)
     motor2.set_duty_cycle(0)
+    pi.write(led1, 0)
+    pi.write(led2, 0)
 
 
 
@@ -217,3 +222,5 @@ except IOError:
     print('IOERROR: Turning off motors.')
     motor1.set_duty_cycle(0)
     motor2.set_duty_cycle(0)
+    pi.write(led1, 0)
+    pi.write(led2, 0)
