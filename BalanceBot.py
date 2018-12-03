@@ -32,6 +32,10 @@ enc1B = 8
 enc2A = 11
 enc2B = 9
 
+# LED Pins to turn on
+led1 = 5
+led2 = 6
+
 # IMU Pins
 #SDA: 2
 #SCL: 3
@@ -39,6 +43,12 @@ mpu_vio = 4
 
 # Initialize Pi
 pi = pigpio.pi()
+
+# Initializing LED Pins to output mode
+pi.set_mode(led1, pigpio.OUTPUT)
+pi.write(led1, 0)
+pi.set_mode(led1, pigpio.OUTPUT)
+pi.write(led2, 0)
 
 # Initialize IMU
 #bno = BNO055(pi=pi) #, rst=bno_rst)
@@ -139,7 +149,13 @@ try:
         motor2.set_duty_cycle(balance_controller.u)
 
 
-
+        # Check angle and turn on correct LED
+        if cfilt.rollangle > 0:
+            pi.write(led1, 1)
+            pi.write(led2, 0)
+        else:
+            pi.write(led1, 0)
+            pi.write(led2, 1)
 
         if (count % 40) == 0:
             #print('{:>6.3F}'.format(RPS_M1*60))
