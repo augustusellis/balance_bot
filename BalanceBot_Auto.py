@@ -1,16 +1,12 @@
 import time
 import pigpio # Remember to enable pigpiod
 import numpy as np
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
+from math import copysign
 from collections import deque
 #from scipy import stats
 from IMU.IMU import IMU
-from IMU.BNO055 import BNO055
 from IMU.MPU6050 import MPU6050
 from IMU.ComplementaryFilter import ComplementaryFilter
-from IMU.MadgwickAHRS import MadgwickAHRS
 from Controllers.PIDController import PIDController
 from MotorAndEncoder.motor import motor
 #from MotorAndEncoder.rotary_encoder import rotary_encoder
@@ -72,7 +68,7 @@ period = 0.0021
 balance_controller = PIDController(10,0.225,63) # Worked with adjusted offset aimed at reducing x oscillations
 
 # Initialize Filter
-cfilt = ComplementaryFilter(alpha=0.98, rollangle=0, angleOffset=1.1359977682671618*0.59)#.56576161028555327/2)#1.0570298272571372)
+cfilt = ComplementaryFilter(alpha=0.98, rollangle=0, angleOffset=0.730238683)#.56576161028555327/2)#1.0570298272571372)
 
 # Initialize Data Storage Lists
 omega_raw = []
@@ -153,8 +149,8 @@ try:
 
         ## Update Control Signals
         x = ((np.mean(M1_diff_deck)+np.mean(M2_diff_deck))/2)*10
-        error = (r-cfilt.rollangle) # + 0.07*min([(x - xref), 2.5])
-        balance_controller.update(error)#-0.1*motor1.get_pos())
+        error = (r-cfilt.rollangle) + 0.025*copysign(1,x-xref)*min([abs(x - xref), 2.5])
+        balance_controller.update(error)
         #M1_controller.update( balance_controller.u - RPS_M1)
         #M2_controller.update( balance_controller.u - RPS_M2)
 
@@ -203,19 +199,8 @@ try:
     print('Angle too high, turning off motors: {}'.format(cfilt.rollangle))
     motor1.set_duty_cycle(0)
     motor2.set_duty_cycle(0)
-
-
-    plt.figure(0)
-    plt.rcParams.update({'font.size': 22})
-    plt.plot(np.array(sim_time)-sim_time[0],np.array(theta_raw),label='theta')
-    plt.plot(np.array(sim_time)-sim_time[0],np.array(u_raw),label='u')
-    plt.title('BalanceBot Trial: Kp:{: <4.2F}, Ki:{: <4.2F}, Kd:{: <4.2F}'.format(balance_controller.kP,balance_controller.kI,balance_controller.kD))
-    plt.xlabel('Time [s]')
-    plt.ylabel('Magnitude')
-    plt.legend()
-    plt.grid(True)
-    plt.savefig('BB_run_.png'.format(1))
-    #plt.show()
+    pi.write(led1, 0)
+    pi.write(led2, 0)
 
 
 
@@ -225,6 +210,8 @@ except KeyboardInterrupt:
     print('Turning off motors.')
     motor1.set_duty_cycle(0)
     motor2.set_duty_cycle(0)
+    pi.write(led1, 0)
+    pi.write(led2, 0)
 
 
 
