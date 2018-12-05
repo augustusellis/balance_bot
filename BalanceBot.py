@@ -7,7 +7,6 @@ from IMU.MPU6050 import MPU6050
 from IMU.ComplementaryFilter import ComplementaryFilter
 from Controllers.PIDController import PIDController
 from MotorAndEncoder.motor import motor
-#from MotorAndEncoder.rotary_encoder import rotary_encoder
 
 
 # Define pin numbers:
@@ -46,7 +45,6 @@ pi.write(led2, 0)
 # Initialize IMU
 mpu = MPU6050(0x68, mpu_vio)
 
-
 # Initialize Motors and Encoders
 motor2 = motor(pi,BI1,BI2,pwmB,enc2A,enc2B, encoder=True)
 motor1 = motor(pi,AI1,AI2,pwmA,enc1A,enc1B, encoder=True)
@@ -66,9 +64,6 @@ cfilt = ComplementaryFilter(alpha=0.98, rollangle=0, angleOffset=0.730238683)#.5
 try:
 
     input('Press enter to begin running BalanceBot, press Ctrl-C to quit...')
-
-    M1_pos = motor1.get_pos()
-    M2_pos = motor2.get_pos()
 
     M1_pos_deck = deque([0, 0], 25)
     M2_pos_deck = deque([0, 0], 25)

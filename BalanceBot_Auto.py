@@ -3,13 +3,10 @@ import pigpio # Remember to enable pigpiod
 import numpy as np
 from math import copysign
 from collections import deque
-#from scipy import stats
-from IMU.IMU import IMU
 from IMU.MPU6050 import MPU6050
 from IMU.ComplementaryFilter import ComplementaryFilter
 from Controllers.PIDController import PIDController
 from MotorAndEncoder.motor import motor
-#from MotorAndEncoder.rotary_encoder import rotary_encoder
 
 
 # Define pin numbers:
@@ -21,7 +18,6 @@ pwmA = 18
 BI1 = 23
 BI2 = 24
 pwmB = 19
-
 
 enc1A = 7
 enc1B = 8
@@ -47,17 +43,11 @@ pi.set_mode(led1, pigpio.OUTPUT)
 pi.write(led2, 0)
 
 # Initialize IMU
-#bno = BNO055(pi=pi) #, rst=bno_rst)
-#imu = IMU(pi=pi, rst=5)
 mpu = MPU6050(0x68, mpu_vio)
-
 
 # Initialize Motors and Encoders
 motor2 = motor(pi,BI1,BI2,pwmB,enc2A,enc2B, encoder=True)
 motor1 = motor(pi,AI1,AI2,pwmA,enc1A,enc1B, encoder=True)
-#enc1 = rotary_encoder(pi,enc1A,enc1B,countsPerRevolution=12)
-#enc2 = rotary_encoder(pi,enc2A,enc2B,countsPerRevolution=12)
-
 
 # Initialize Controllers
 period = 0.0021
@@ -69,14 +59,6 @@ balance_controller = PIDController(10,0.225,63) # Worked with adjusted offset ai
 
 # Initialize Filter
 cfilt = ComplementaryFilter(alpha=0.98, rollangle=0, angleOffset=0.730238683)#.56576161028555327/2)#1.0570298272571372)
-
-# Initialize Data Storage Lists
-omega_raw = []
-#theta_raw = []
-#u_raw = []
-#omega_kalman = []
-#theta_kalman = []
-#sim_time = []
 
 # Run main loop
 try:
