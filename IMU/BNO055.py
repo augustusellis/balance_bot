@@ -29,187 +29,187 @@ import pigpio
 import time
 
 
-# I2C addresses
-BNO055_ADDRESS_A                     = 0x28
-BNO055_ADDRESS_B                     = 0x29
-BNO055_ID                            = 0xA0
-
-# Page id register definition
-BNO055_PAGE_ID_ADDR                  = 0X07
-
-# PAGE0 REGISTER DEFINITION START
-BNO055_CHIP_ID_ADDR                  = 0x00
-BNO055_ACCEL_REV_ID_ADDR             = 0x01
-BNO055_MAG_REV_ID_ADDR               = 0x02
-BNO055_GYRO_REV_ID_ADDR              = 0x03
-BNO055_SW_REV_ID_LSB_ADDR            = 0x04
-BNO055_SW_REV_ID_MSB_ADDR            = 0x05
-BNO055_BL_REV_ID_ADDR                = 0X06
-
-# Accel data register
-BNO055_ACCEL_DATA_X_LSB_ADDR         = 0X08
-BNO055_ACCEL_DATA_X_MSB_ADDR         = 0X09
-BNO055_ACCEL_DATA_Y_LSB_ADDR         = 0X0A
-BNO055_ACCEL_DATA_Y_MSB_ADDR         = 0X0B
-BNO055_ACCEL_DATA_Z_LSB_ADDR         = 0X0C
-BNO055_ACCEL_DATA_Z_MSB_ADDR         = 0X0D
-
-# Mag data register
-BNO055_MAG_DATA_X_LSB_ADDR           = 0X0E
-BNO055_MAG_DATA_X_MSB_ADDR           = 0X0F
-BNO055_MAG_DATA_Y_LSB_ADDR           = 0X10
-BNO055_MAG_DATA_Y_MSB_ADDR           = 0X11
-BNO055_MAG_DATA_Z_LSB_ADDR           = 0X12
-BNO055_MAG_DATA_Z_MSB_ADDR           = 0X13
-
-# Gyro data registers
-BNO055_GYRO_DATA_X_LSB_ADDR          = 0X14
-BNO055_GYRO_DATA_X_MSB_ADDR          = 0X15
-BNO055_GYRO_DATA_Y_LSB_ADDR          = 0X16
-BNO055_GYRO_DATA_Y_MSB_ADDR          = 0X17
-BNO055_GYRO_DATA_Z_LSB_ADDR          = 0X18
-BNO055_GYRO_DATA_Z_MSB_ADDR          = 0X19
-
-# Euler data registers
-BNO055_EULER_H_LSB_ADDR              = 0X1A
-BNO055_EULER_H_MSB_ADDR              = 0X1B
-BNO055_EULER_R_LSB_ADDR              = 0X1C
-BNO055_EULER_R_MSB_ADDR              = 0X1D
-BNO055_EULER_P_LSB_ADDR              = 0X1E
-BNO055_EULER_P_MSB_ADDR              = 0X1F
-
-# Quaternion data registers
-BNO055_QUATERNION_DATA_W_LSB_ADDR    = 0X20
-BNO055_QUATERNION_DATA_W_MSB_ADDR    = 0X21
-BNO055_QUATERNION_DATA_X_LSB_ADDR    = 0X22
-BNO055_QUATERNION_DATA_X_MSB_ADDR    = 0X23
-BNO055_QUATERNION_DATA_Y_LSB_ADDR    = 0X24
-BNO055_QUATERNION_DATA_Y_MSB_ADDR    = 0X25
-BNO055_QUATERNION_DATA_Z_LSB_ADDR    = 0X26
-BNO055_QUATERNION_DATA_Z_MSB_ADDR    = 0X27
-
-# Linear acceleration data registers
-BNO055_LINEAR_ACCEL_DATA_X_LSB_ADDR  = 0X28
-BNO055_LINEAR_ACCEL_DATA_X_MSB_ADDR  = 0X29
-BNO055_LINEAR_ACCEL_DATA_Y_LSB_ADDR  = 0X2A
-BNO055_LINEAR_ACCEL_DATA_Y_MSB_ADDR  = 0X2B
-BNO055_LINEAR_ACCEL_DATA_Z_LSB_ADDR  = 0X2C
-BNO055_LINEAR_ACCEL_DATA_Z_MSB_ADDR  = 0X2D
-
-# Gravity data registers
-BNO055_GRAVITY_DATA_X_LSB_ADDR       = 0X2E
-BNO055_GRAVITY_DATA_X_MSB_ADDR       = 0X2F
-BNO055_GRAVITY_DATA_Y_LSB_ADDR       = 0X30
-BNO055_GRAVITY_DATA_Y_MSB_ADDR       = 0X31
-BNO055_GRAVITY_DATA_Z_LSB_ADDR       = 0X32
-BNO055_GRAVITY_DATA_Z_MSB_ADDR       = 0X33
-
-# Temperature data register
-BNO055_TEMP_ADDR                     = 0X34
-
-# Status registers
-BNO055_CALIB_STAT_ADDR               = 0X35
-BNO055_SELFTEST_RESULT_ADDR          = 0X36
-BNO055_INTR_STAT_ADDR                = 0X37
-
-BNO055_SYS_CLK_STAT_ADDR             = 0X38
-BNO055_SYS_STAT_ADDR                 = 0X39
-BNO055_SYS_ERR_ADDR                  = 0X3A
-
-# Unit selection register
-BNO055_UNIT_SEL_ADDR                 = 0X3B
-BNO055_DATA_SELECT_ADDR              = 0X3C
-
-# Mode registers
-BNO055_OPR_MODE_ADDR                 = 0X3D
-BNO055_PWR_MODE_ADDR                 = 0X3E
-
-BNO055_SYS_TRIGGER_ADDR              = 0X3F
-BNO055_TEMP_SOURCE_ADDR              = 0X40
-
-# Axis remap registers
-BNO055_AXIS_MAP_CONFIG_ADDR          = 0X41
-BNO055_AXIS_MAP_SIGN_ADDR            = 0X42
-
-# Axis remap values
-AXIS_REMAP_X                         = 0x00
-AXIS_REMAP_Y                         = 0x01
-AXIS_REMAP_Z                         = 0x02
-AXIS_REMAP_POSITIVE                  = 0x00
-AXIS_REMAP_NEGATIVE                  = 0x01
-
-# SIC registers
-BNO055_SIC_MATRIX_0_LSB_ADDR         = 0X43
-BNO055_SIC_MATRIX_0_MSB_ADDR         = 0X44
-BNO055_SIC_MATRIX_1_LSB_ADDR         = 0X45
-BNO055_SIC_MATRIX_1_MSB_ADDR         = 0X46
-BNO055_SIC_MATRIX_2_LSB_ADDR         = 0X47
-BNO055_SIC_MATRIX_2_MSB_ADDR         = 0X48
-BNO055_SIC_MATRIX_3_LSB_ADDR         = 0X49
-BNO055_SIC_MATRIX_3_MSB_ADDR         = 0X4A
-BNO055_SIC_MATRIX_4_LSB_ADDR         = 0X4B
-BNO055_SIC_MATRIX_4_MSB_ADDR         = 0X4C
-BNO055_SIC_MATRIX_5_LSB_ADDR         = 0X4D
-BNO055_SIC_MATRIX_5_MSB_ADDR         = 0X4E
-BNO055_SIC_MATRIX_6_LSB_ADDR         = 0X4F
-BNO055_SIC_MATRIX_6_MSB_ADDR         = 0X50
-BNO055_SIC_MATRIX_7_LSB_ADDR         = 0X51
-BNO055_SIC_MATRIX_7_MSB_ADDR         = 0X52
-BNO055_SIC_MATRIX_8_LSB_ADDR         = 0X53
-BNO055_SIC_MATRIX_8_MSB_ADDR         = 0X54
-
-# Accelerometer Offset registers
-ACCEL_OFFSET_X_LSB_ADDR              = 0X55
-ACCEL_OFFSET_X_MSB_ADDR              = 0X56
-ACCEL_OFFSET_Y_LSB_ADDR              = 0X57
-ACCEL_OFFSET_Y_MSB_ADDR              = 0X58
-ACCEL_OFFSET_Z_LSB_ADDR              = 0X59
-ACCEL_OFFSET_Z_MSB_ADDR              = 0X5A
-
-# Magnetometer Offset registers
-MAG_OFFSET_X_LSB_ADDR                = 0X5B
-MAG_OFFSET_X_MSB_ADDR                = 0X5C
-MAG_OFFSET_Y_LSB_ADDR                = 0X5D
-MAG_OFFSET_Y_MSB_ADDR                = 0X5E
-MAG_OFFSET_Z_LSB_ADDR                = 0X5F
-MAG_OFFSET_Z_MSB_ADDR                = 0X60
-
-# Gyroscope Offset register s
-GYRO_OFFSET_X_LSB_ADDR               = 0X61
-GYRO_OFFSET_X_MSB_ADDR               = 0X62
-GYRO_OFFSET_Y_LSB_ADDR               = 0X63
-GYRO_OFFSET_Y_MSB_ADDR               = 0X64
-GYRO_OFFSET_Z_LSB_ADDR               = 0X65
-GYRO_OFFSET_Z_MSB_ADDR               = 0X66
-
-# Radius registers
-ACCEL_RADIUS_LSB_ADDR                = 0X67
-ACCEL_RADIUS_MSB_ADDR                = 0X68
-MAG_RADIUS_LSB_ADDR                  = 0X69
-MAG_RADIUS_MSB_ADDR                  = 0X6A
-
-# Power modes
-POWER_MODE_NORMAL                    = 0X00
-POWER_MODE_LOWPOWER                  = 0X01
-POWER_MODE_SUSPEND                   = 0X02
-
-# Operation mode settings
-OPERATION_MODE_CONFIG                = 0X00
-OPERATION_MODE_ACCONLY               = 0X01
-OPERATION_MODE_MAGONLY               = 0X02
-OPERATION_MODE_GYRONLY               = 0X03
-OPERATION_MODE_ACCMAG                = 0X04
-OPERATION_MODE_ACCGYRO               = 0X05
-OPERATION_MODE_MAGGYRO               = 0X06
-OPERATION_MODE_AMG                   = 0X07
-OPERATION_MODE_IMUPLUS               = 0X08
-OPERATION_MODE_COMPASS               = 0X09
-OPERATION_MODE_M4G                   = 0X0A
-OPERATION_MODE_NDOF_FMC_OFF          = 0X0B
-OPERATION_MODE_NDOF                  = 0X0C
 
 
 class BNO055(object):
+    # I2C addresses
+    BNO055_ADDRESS_A                     = 0x28
+    BNO055_ADDRESS_B                     = 0x29
+    BNO055_ID                            = 0xA0
+
+    # Page id register definition
+    BNO055_PAGE_ID_ADDR                  = 0X07
+
+    # PAGE0 REGISTER DEFINITION START
+    BNO055_CHIP_ID_ADDR                  = 0x00
+    BNO055_ACCEL_REV_ID_ADDR             = 0x01
+    BNO055_MAG_REV_ID_ADDR               = 0x02
+    BNO055_GYRO_REV_ID_ADDR              = 0x03
+    BNO055_SW_REV_ID_LSB_ADDR            = 0x04
+    BNO055_SW_REV_ID_MSB_ADDR            = 0x05
+    BNO055_BL_REV_ID_ADDR                = 0X06
+
+    # Accel data register
+    BNO055_ACCEL_DATA_X_LSB_ADDR         = 0X08
+    BNO055_ACCEL_DATA_X_MSB_ADDR         = 0X09
+    BNO055_ACCEL_DATA_Y_LSB_ADDR         = 0X0A
+    BNO055_ACCEL_DATA_Y_MSB_ADDR         = 0X0B
+    BNO055_ACCEL_DATA_Z_LSB_ADDR         = 0X0C
+    BNO055_ACCEL_DATA_Z_MSB_ADDR         = 0X0D
+
+    # Mag data register
+    BNO055_MAG_DATA_X_LSB_ADDR           = 0X0E
+    BNO055_MAG_DATA_X_MSB_ADDR           = 0X0F
+    BNO055_MAG_DATA_Y_LSB_ADDR           = 0X10
+    BNO055_MAG_DATA_Y_MSB_ADDR           = 0X11
+    BNO055_MAG_DATA_Z_LSB_ADDR           = 0X12
+    BNO055_MAG_DATA_Z_MSB_ADDR           = 0X13
+
+    # Gyro data registers
+    BNO055_GYRO_DATA_X_LSB_ADDR          = 0X14
+    BNO055_GYRO_DATA_X_MSB_ADDR          = 0X15
+    BNO055_GYRO_DATA_Y_LSB_ADDR          = 0X16
+    BNO055_GYRO_DATA_Y_MSB_ADDR          = 0X17
+    BNO055_GYRO_DATA_Z_LSB_ADDR          = 0X18
+    BNO055_GYRO_DATA_Z_MSB_ADDR          = 0X19
+
+    # Euler data registers
+    BNO055_EULER_H_LSB_ADDR              = 0X1A
+    BNO055_EULER_H_MSB_ADDR              = 0X1B
+    BNO055_EULER_R_LSB_ADDR              = 0X1C
+    BNO055_EULER_R_MSB_ADDR              = 0X1D
+    BNO055_EULER_P_LSB_ADDR              = 0X1E
+    BNO055_EULER_P_MSB_ADDR              = 0X1F
+
+    # Quaternion data registers
+    BNO055_QUATERNION_DATA_W_LSB_ADDR    = 0X20
+    BNO055_QUATERNION_DATA_W_MSB_ADDR    = 0X21
+    BNO055_QUATERNION_DATA_X_LSB_ADDR    = 0X22
+    BNO055_QUATERNION_DATA_X_MSB_ADDR    = 0X23
+    BNO055_QUATERNION_DATA_Y_LSB_ADDR    = 0X24
+    BNO055_QUATERNION_DATA_Y_MSB_ADDR    = 0X25
+    BNO055_QUATERNION_DATA_Z_LSB_ADDR    = 0X26
+    BNO055_QUATERNION_DATA_Z_MSB_ADDR    = 0X27
+
+    # Linear acceleration data registers
+    BNO055_LINEAR_ACCEL_DATA_X_LSB_ADDR  = 0X28
+    BNO055_LINEAR_ACCEL_DATA_X_MSB_ADDR  = 0X29
+    BNO055_LINEAR_ACCEL_DATA_Y_LSB_ADDR  = 0X2A
+    BNO055_LINEAR_ACCEL_DATA_Y_MSB_ADDR  = 0X2B
+    BNO055_LINEAR_ACCEL_DATA_Z_LSB_ADDR  = 0X2C
+    BNO055_LINEAR_ACCEL_DATA_Z_MSB_ADDR  = 0X2D
+
+    # Gravity data registers
+    BNO055_GRAVITY_DATA_X_LSB_ADDR       = 0X2E
+    BNO055_GRAVITY_DATA_X_MSB_ADDR       = 0X2F
+    BNO055_GRAVITY_DATA_Y_LSB_ADDR       = 0X30
+    BNO055_GRAVITY_DATA_Y_MSB_ADDR       = 0X31
+    BNO055_GRAVITY_DATA_Z_LSB_ADDR       = 0X32
+    BNO055_GRAVITY_DATA_Z_MSB_ADDR       = 0X33
+
+    # Temperature data register
+    BNO055_TEMP_ADDR                     = 0X34
+
+    # Status registers
+    BNO055_CALIB_STAT_ADDR               = 0X35
+    BNO055_SELFTEST_RESULT_ADDR          = 0X36
+    BNO055_INTR_STAT_ADDR                = 0X37
+
+    BNO055_SYS_CLK_STAT_ADDR             = 0X38
+    BNO055_SYS_STAT_ADDR                 = 0X39
+    BNO055_SYS_ERR_ADDR                  = 0X3A
+
+    # Unit selection register
+    BNO055_UNIT_SEL_ADDR                 = 0X3B
+    BNO055_DATA_SELECT_ADDR              = 0X3C
+
+    # Mode registers
+    BNO055_OPR_MODE_ADDR                 = 0X3D
+    BNO055_PWR_MODE_ADDR                 = 0X3E
+
+    BNO055_SYS_TRIGGER_ADDR              = 0X3F
+    BNO055_TEMP_SOURCE_ADDR              = 0X40
+
+    # Axis remap registers
+    BNO055_AXIS_MAP_CONFIG_ADDR          = 0X41
+    BNO055_AXIS_MAP_SIGN_ADDR            = 0X42
+
+    # Axis remap values
+    AXIS_REMAP_X                         = 0x00
+    AXIS_REMAP_Y                         = 0x01
+    AXIS_REMAP_Z                         = 0x02
+    AXIS_REMAP_POSITIVE                  = 0x00
+    AXIS_REMAP_NEGATIVE                  = 0x01
+
+    # SIC registers
+    BNO055_SIC_MATRIX_0_LSB_ADDR         = 0X43
+    BNO055_SIC_MATRIX_0_MSB_ADDR         = 0X44
+    BNO055_SIC_MATRIX_1_LSB_ADDR         = 0X45
+    BNO055_SIC_MATRIX_1_MSB_ADDR         = 0X46
+    BNO055_SIC_MATRIX_2_LSB_ADDR         = 0X47
+    BNO055_SIC_MATRIX_2_MSB_ADDR         = 0X48
+    BNO055_SIC_MATRIX_3_LSB_ADDR         = 0X49
+    BNO055_SIC_MATRIX_3_MSB_ADDR         = 0X4A
+    BNO055_SIC_MATRIX_4_LSB_ADDR         = 0X4B
+    BNO055_SIC_MATRIX_4_MSB_ADDR         = 0X4C
+    BNO055_SIC_MATRIX_5_LSB_ADDR         = 0X4D
+    BNO055_SIC_MATRIX_5_MSB_ADDR         = 0X4E
+    BNO055_SIC_MATRIX_6_LSB_ADDR         = 0X4F
+    BNO055_SIC_MATRIX_6_MSB_ADDR         = 0X50
+    BNO055_SIC_MATRIX_7_LSB_ADDR         = 0X51
+    BNO055_SIC_MATRIX_7_MSB_ADDR         = 0X52
+    BNO055_SIC_MATRIX_8_LSB_ADDR         = 0X53
+    BNO055_SIC_MATRIX_8_MSB_ADDR         = 0X54
+
+    # Accelerometer Offset registers
+    ACCEL_OFFSET_X_LSB_ADDR              = 0X55
+    ACCEL_OFFSET_X_MSB_ADDR              = 0X56
+    ACCEL_OFFSET_Y_LSB_ADDR              = 0X57
+    ACCEL_OFFSET_Y_MSB_ADDR              = 0X58
+    ACCEL_OFFSET_Z_LSB_ADDR              = 0X59
+    ACCEL_OFFSET_Z_MSB_ADDR              = 0X5A
+
+    # Magnetometer Offset registers
+    MAG_OFFSET_X_LSB_ADDR                = 0X5B
+    MAG_OFFSET_X_MSB_ADDR                = 0X5C
+    MAG_OFFSET_Y_LSB_ADDR                = 0X5D
+    MAG_OFFSET_Y_MSB_ADDR                = 0X5E
+    MAG_OFFSET_Z_LSB_ADDR                = 0X5F
+    MAG_OFFSET_Z_MSB_ADDR                = 0X60
+
+    # Gyroscope Offset register s
+    GYRO_OFFSET_X_LSB_ADDR               = 0X61
+    GYRO_OFFSET_X_MSB_ADDR               = 0X62
+    GYRO_OFFSET_Y_LSB_ADDR               = 0X63
+    GYRO_OFFSET_Y_MSB_ADDR               = 0X64
+    GYRO_OFFSET_Z_LSB_ADDR               = 0X65
+    GYRO_OFFSET_Z_MSB_ADDR               = 0X66
+
+    # Radius registers
+    ACCEL_RADIUS_LSB_ADDR                = 0X67
+    ACCEL_RADIUS_MSB_ADDR                = 0X68
+    MAG_RADIUS_LSB_ADDR                  = 0X69
+    MAG_RADIUS_MSB_ADDR                  = 0X6A
+
+    # Power modes
+    POWER_MODE_NORMAL                    = 0X00
+    POWER_MODE_LOWPOWER                  = 0X01
+    POWER_MODE_SUSPEND                   = 0X02
+
+    # Operation mode settings
+    OPERATION_MODE_CONFIG                = 0X00
+    OPERATION_MODE_ACCONLY               = 0X01
+    OPERATION_MODE_MAGONLY               = 0X02
+    OPERATION_MODE_GYRONLY               = 0X03
+    OPERATION_MODE_ACCMAG                = 0X04
+    OPERATION_MODE_ACCGYRO               = 0X05
+    OPERATION_MODE_MAGGYRO               = 0X06
+    OPERATION_MODE_AMG                   = 0X07
+    OPERATION_MODE_IMUPLUS               = 0X08
+    OPERATION_MODE_COMPASS               = 0X09
+    OPERATION_MODE_M4G                   = 0X0A
+    OPERATION_MODE_NDOF_FMC_OFF          = 0X0B
+    OPERATION_MODE_NDOF                  = 0X0C
 
     def __init__(self, pi = pigpio.pi(), rst=None, address=BNO055_ADDRESS_A, bus=1, serial_timeout_sec=5, **kwargs):
         # If reset pin is provided save it and a reference to provided GPIO
@@ -243,7 +243,7 @@ class BNO055(object):
         # just to make sure the BNO is in a good state and ready to accept
         # commands (this seems to be necessary after a hard power down).
         try:
-            self._write_byte(BNO055_PAGE_ID_ADDR, 0)
+            self._write_byte(self.BNO055_PAGE_ID_ADDR, 0)
         except IOError:
             # Swallow an IOError that might be raised by an I2C issue.  Only do
             # this for this very first command to help get the BNO and board's
@@ -252,12 +252,12 @@ class BNO055(object):
             pass
         # Make sure we're in config mode and on page 0.
         self._config_mode()
-        self._write_byte(BNO055_PAGE_ID_ADDR, 0)
+        self._write_byte(self.BNO055_PAGE_ID_ADDR, 0)
         # Check the chip ID
-        bno_id = self._read_byte(BNO055_CHIP_ID_ADDR)
+        bno_id = self._read_byte(self.BNO055_CHIP_ID_ADDR)
 
         #logger.debug('Read chip ID: 0x{0:02X}'.format(bno_id))
-        if bno_id != BNO055_ID:
+        if bno_id != self.BNO055_ID:
             return False
         # Reset the device.
         if self.rst is not None:
@@ -268,14 +268,14 @@ class BNO055(object):
             self.pi.write(self.rst, 1)
         else:
             # Else use the reset command.
-            self._write_byte(BNO055_SYS_TRIGGER_ADDR, 0x20)
+            self._write_byte(self.BNO055_SYS_TRIGGER_ADDR, 0x20)
         # Wait 650ms after reset for chip to be ready (as suggested
         # in datasheet).
         time.sleep(0.65)
         # Set to normal power mode.
-        self._write_byte(BNO055_PWR_MODE_ADDR, POWER_MODE_NORMAL)
+        self._write_byte(self.BNO055_PWR_MODE_ADDR, self.POWER_MODE_NORMAL)
         # Default to internal oscillator.
-        self._write_byte(BNO055_SYS_TRIGGER_ADDR, 0x0)
+        self._write_byte(self.BNO055_SYS_TRIGGER_ADDR, 0x0)
         # Enter normal operation mode.
         self._operation_mode()
         return True
@@ -286,7 +286,7 @@ class BNO055(object):
         """Return the current absolute orientation as a tuple of heading, roll,
         and pitch euler angles in degrees.
         """
-        heading, roll, pitch = self._read_vector(BNO055_EULER_H_LSB_ADDR)
+        heading, roll, pitch = self._read_vector(self.BNO055_EULER_H_LSB_ADDR)
         return (heading/16.0, roll/16.0, pitch/16.0)
 
 
@@ -294,7 +294,7 @@ class BNO055(object):
         """Return the current magnetometer reading as a tuple of X, Y, Z values
         in micro-Teslas.
         """
-        x, y, z = self._read_vector(BNO055_MAG_DATA_X_LSB_ADDR)
+        x, y, z = self._read_vector(self.BNO055_MAG_DATA_X_LSB_ADDR)
         return (x/16.0, y/16.0, z/16.0)
 
 
@@ -302,7 +302,7 @@ class BNO055(object):
         """Return the current gyroscope (angular velocity) reading as a tuple of
         X, Y, Z values in degrees per second.
         """
-        x, y, z = self._read_vector(BNO055_GYRO_DATA_X_LSB_ADDR)
+        x, y, z = self._read_vector(self.BNO055_GYRO_DATA_X_LSB_ADDR)
         # 1 dps = 16 LSB
         # 1 rps = 900 LSB
         # Default unit is dps
@@ -313,7 +313,7 @@ class BNO055(object):
         """Return the current accelerometer reading as a tuple of X, Y, Z values
         in meters/second^2.
         """
-        x, y, z = self._read_vector(BNO055_ACCEL_DATA_X_LSB_ADDR)
+        x, y, z = self._read_vector(self.BNO055_ACCEL_DATA_X_LSB_ADDR)
 
         # 1 m/s2 = 100 LSB (from data sheet)
         return (x/100.0, y/100.0, z/100.0)
@@ -323,7 +323,7 @@ class BNO055(object):
         """Return the current linear acceleration (acceleration from movement,
         not from gravity) reading as a tuple of X, Y, Z values in meters/second^2.
         """
-        x, y, z = self._read_vector(BNO055_LINEAR_ACCEL_DATA_X_LSB_ADDR)
+        x, y, z = self._read_vector(self.BNO055_LINEAR_ACCEL_DATA_X_LSB_ADDR)
         return (x/100.0, y/100.0, z/100.0)
 
 
@@ -331,7 +331,7 @@ class BNO055(object):
         """Return the current gravity acceleration reading as a tuple of X, Y, Z
         values in meters/second^2.
         """
-        x, y, z = self._read_vector(BNO055_GRAVITY_DATA_X_LSB_ADDR)
+        x, y, z = self._read_vector(self.BNO055_GRAVITY_DATA_X_LSB_ADDR)
         return (x/100.0, y/100.0, z/100.0)
 
 
@@ -339,7 +339,7 @@ class BNO055(object):
         """Return the current orientation as a tuple of X, Y, Z, W quaternion
         values.
         """
-        w, x, y, z = self._read_vector(BNO055_QUATERNION_DATA_W_LSB_ADDR, 4)
+        w, x, y, z = self._read_vector(self.BNO055_QUATERNION_DATA_W_LSB_ADDR, 4)
         # Scale values, see 3.6.5.5 in the datasheet.
         scale = (1.0 / (1<<14))
         return (x*scale, y*scale, z*scale, w*scale)
@@ -347,7 +347,7 @@ class BNO055(object):
 
     def read_temp(self):
         """Return the current temperature in Celsius."""
-        return self._read_signed_byte(BNO055_TEMP_ADDR)
+        return self._read_signed_byte(self.BNO055_TEMP_ADDR)
 
 
 # Read Data From Registers ----------------------------------------------------
@@ -398,7 +398,7 @@ class BNO055(object):
 # Mostly Useless Utility Functions --------------------------------------------
     def _config_mode(self):
         # Enter configuration mode.
-        self.set_mode(OPERATION_MODE_CONFIG)
+        self.set_mode(self.OPERATION_MODE_CONFIG)
 
 
     def _operation_mode(self):
@@ -412,7 +412,7 @@ class BNO055(object):
         table 3-3 and 3-5 of the datasheet:
         http://www.adafruit.com/datasheets/BST_BNO055_DS000_12.pdf
         """
-        self._write_byte(BNO055_OPR_MODE_ADDR, mode & 0xFF)
+        self._write_byte(self.BNO055_OPR_MODE_ADDR, mode & 0xFF)
         # Delay for 30 milliseconds (datsheet recommends 19ms, but a little more
         # can't hurt and the kernel is going to spend some unknown amount of time
         # too).
@@ -429,12 +429,12 @@ class BNO055(object):
           - Gyro ID
         """
         # Read revision values.
-        accel = self._read_byte(BNO055_ACCEL_REV_ID_ADDR)
-        mag = self._read_byte(BNO055_MAG_REV_ID_ADDR)
-        gyro = self._read_byte(BNO055_GYRO_REV_ID_ADDR)
-        bl = self._read_byte(BNO055_BL_REV_ID_ADDR)
-        sw_lsb = self._read_byte(BNO055_SW_REV_ID_LSB_ADDR)
-        sw_msb = self._read_byte(BNO055_SW_REV_ID_MSB_ADDR)
+        accel = self._read_byte(self.BNO055_ACCEL_REV_ID_ADDR)
+        mag = self._read_byte(self.BNO055_MAG_REV_ID_ADDR)
+        gyro = self._read_byte(self.BNO055_GYRO_REV_ID_ADDR)
+        bl = self._read_byte(self.BNO055_BL_REV_ID_ADDR)
+        sw_lsb = self._read_byte(self.BNO055_SW_REV_ID_LSB_ADDR)
+        sw_msb = self._read_byte(self.BNO055_SW_REV_ID_MSB_ADDR)
         sw = ((sw_msb << 8) | sw_lsb) & 0xFFFF
         # Return the results as a tuple of all 5 values.
         return (sw, bl, accel, mag, gyro)
@@ -480,17 +480,17 @@ class BNO055(object):
             # Switch to configuration mode if running self test.
             self._config_mode()
             # Perform a self test.
-            sys_trigger = self._read_byte(BNO055_SYS_TRIGGER_ADDR)
-            self._write_byte(BNO055_SYS_TRIGGER_ADDR, sys_trigger | 0x1)
+            sys_trigger = self._read_byte(self.BNO055_SYS_TRIGGER_ADDR)
+            self._write_byte(self.BNO055_SYS_TRIGGER_ADDR, sys_trigger | 0x1)
             # Wait for self test to finish.
             time.sleep(1.0)
             # Read test result.
-            self_test = self._read_byte(BNO055_SELFTEST_RESULT_ADDR)
+            self_test = self._read_byte(self.BNO055_SELFTEST_RESULT_ADDR)
             # Go back to operation mode.
             self._operation_mode()
         # Now read status and error registers.
-        status = self._read_byte(BNO055_SYS_STAT_ADDR)
-        error = self._read_byte(BNO055_SYS_ERR_ADDR)
+        status = self._read_byte(self.BNO055_SYS_STAT_ADDR)
+        error = self._read_byte(self.BNO055_SYS_ERR_ADDR)
         # Return the results as a tuple of all 3 values.
         return (status, self_test, error)
 
@@ -504,7 +504,7 @@ class BNO055(object):
           - Magnetometer, 3=fully calibrated, 0=not calibrated
         """
         # Return the calibration status register value.
-        cal_status = self._read_byte(BNO055_CALIB_STAT_ADDR)
+        cal_status = self._read_byte(self.BNO055_CALIB_STAT_ADDR)
         sys = (cal_status >> 6) & 0x03
         gyro = (cal_status >> 4) & 0x03
         accel = (cal_status >> 2) & 0x03
@@ -523,7 +523,7 @@ class BNO055(object):
         # Read the 22 bytes of calibration data and convert it to a list (from
         # a bytearray) so it's more easily serialized should the caller want to
         # store it.
-        cal_data = list(self._read_bytes(ACCEL_OFFSET_X_LSB_ADDR, 22))
+        cal_data = list(self._read_bytes(self.ACCEL_OFFSET_X_LSB_ADDR, 22))
         # Go back to normal operation mode.
         self._operation_mode()
         return cal_data
@@ -541,7 +541,7 @@ class BNO055(object):
         # Switch to configuration mode, as mentioned in section 3.10.4 of datasheet.
         self._config_mode()
         # Set the 22 bytes of calibration data.
-        self._write_bytes(ACCEL_OFFSET_X_LSB_ADDR, data)
+        self._write_bytes(self.ACCEL_OFFSET_X_LSB_ADDR, data)
         # Go back to normal operation mode.
         self._operation_mode()
 
@@ -575,12 +575,12 @@ class BNO055(object):
                   |____________|/
         """
         # Get the axis remap register value.
-        map_config = self._read_byte(BNO055_AXIS_MAP_CONFIG_ADDR)
+        map_config = self._read_byte(self.BNO055_AXIS_MAP_CONFIG_ADDR)
         z = (map_config >> 4) & 0x03
         y = (map_config >> 2) & 0x03
         x = map_config & 0x03
         # Get the axis remap sign register value.
-        sign_config = self._read_byte(BNO055_AXIS_MAP_SIGN_ADDR)
+        sign_config = self._read_byte(self.BNO055_AXIS_MAP_SIGN_ADDR)
         x_sign = (sign_config >> 2) & 0x01
         y_sign = (sign_config >> 1) & 0x01
         z_sign = sign_config & 0x01
@@ -589,8 +589,8 @@ class BNO055(object):
 
 
     def set_axis_remap(self, x, y, z,
-                       x_sign=AXIS_REMAP_POSITIVE, y_sign=AXIS_REMAP_POSITIVE,
-                       z_sign=AXIS_REMAP_POSITIVE):
+                       x_sign=self.AXIS_REMAP_POSITIVE, y_sign=self.AXIS_REMAP_POSITIVE,
+                       z_sign=self.AXIS_REMAP_POSITIVE):
         """
         Set axis remap for each axis.  The x, y, z parameter values should
         be set to one of AXIS_REMAP_X, AXIS_REMAP_Y, or AXIS_REMAP_Z and will
@@ -611,12 +611,12 @@ class BNO055(object):
         map_config |= (z & 0x03) << 4
         map_config |= (y & 0x03) << 2
         map_config |= x & 0x03
-        self._write_byte(BNO055_AXIS_MAP_CONFIG_ADDR, map_config)
+        self._write_byte(self.BNO055_AXIS_MAP_CONFIG_ADDR, map_config)
         # Set the axis remap sign register value.
         sign_config = 0x00
         sign_config |= (x_sign & 0x01) << 2
         sign_config |= (y_sign & 0x01) << 1
         sign_config |= z_sign & 0x01
-        self._write_byte(BNO055_AXIS_MAP_SIGN_ADDR, sign_config)
+        self._write_byte(self.BNO055_AXIS_MAP_SIGN_ADDR, sign_config)
         # Go back to normal operation mode.
         self._operation_mode()

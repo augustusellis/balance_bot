@@ -5,15 +5,20 @@ from MotorAndEncoder.rotary_encoder import rotary_encoder
 
 class motor:
     """
-    Class to drive motor
+    Class to drive DC motor
     """
 
     def __init__(self, pi, gpio1, gpio2, pwm_pin, dec_pin1, dec_pin2, countsPerRevolution = 46.85*12, encoder=False):
         """
-        pi: pigpio pi object
-        gpio1: motor pin 1
-        gpio2: motor pin 2
-        pwm_pin: hardware pwm pin (there are a limited number on the pi)
+        Initialize the class with the given parameters.
+        :param pi:                  (pigpio.pi object) pigpio raspberry pi reference variable
+        :param gpio1:               (int) direction gpio pin number
+        :param gpio2:               (int) direction gpio pin number
+        :param pwm_pin:             (int) motor pwm pin number (broadcom)
+        :param dec_pin1:            (int) rotary encoder pin A
+        :param dec_pin2:            (int) rotary encoder pin B
+        :param countsPerRevolution: (float) ratio of quad encoder counts to each revolution of the output shaft
+        :param encoder:             (bool) True if the motor has an encoder, False if it does not
         """
 
         self.pi = pi
@@ -29,7 +34,6 @@ class motor:
             self.decoder = rotary_encoder(self.pi, self.dec_pin1, self.dec_pin2, countsPerRevolution)
         else:
             pass
-            #self.decoder = rotary_encoder.VirtualDecoder(self.pi, self.dec_pin1, self.dec_pin2, countsPerRevolution)
 
         self.pi.set_mode(self.gpio1, pigpio.OUTPUT)
         self.pi.set_mode(self.gpio2, pigpio.OUTPUT)
@@ -40,16 +44,16 @@ class motor:
         self.set_duty_cycle(0)
         self.set_direction(1)
 
-        #self.pi.set_pull_up_down(gpioA, pigpio.PUD_UP)
-        #self.pi.set_pull_up_down(gpioB, pigpio.PUD_UP)
-
     def get_pos(self):
+        '''
+        Returns the motor angular position as determined by the quadrature encoder
+        '''
         return self.decoder.get_position()
 
     def set_duty_cycle(self, percent_cycle):
         '''
-        sets the duty cycle of the motor
-        percent_cycle: -100 to 100 (full speed each direction)
+        Sets the duty cycle of the motor.
+        :param percent_cycle: (float) pwm duty cycle, -100 to 100 (full speed each direction)
         '''
         # check direction
         new_direction = 0
@@ -76,6 +80,10 @@ class motor:
         self.pi.set_PWM_dutycycle(self.pwm_pin, duty_cycle)
 
     def set_direction(self, new_direction):
+        '''
+        Sets the rotation direction of the motor.
+        :param new_directione: (int) motor direction, -1 (CCW), 1 (CW)
+        '''
         if new_direction != self.dir:
             if new_direction == 1:
                 self.pi.write(self.gpio1, 0)
