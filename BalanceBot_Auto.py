@@ -155,7 +155,7 @@ try:
 
 except KeyboardInterrupt:
     print('PER: {}'.format((time.time() - time_start)/count))
-    print('Turning off motors.')
+    print('Keyboard Interrupt: Turning off motors.')
     motor1.set_duty_cycle(0)
     motor2.set_duty_cycle(0)
     pi.write(led1, 0)
