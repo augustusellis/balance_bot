@@ -5,6 +5,7 @@
   <param name="pwm" value="18" />
   <param name="encA" value="7" />
   <param name="encB" value="8" />
+  <remap from="current_position" to="phiA"/>
   </node>
   <node pkg="balanceBot" name="motorB" type="DCMOTOR_NODE.py">
   <param name="I1" value="23" />
@@ -12,5 +13,6 @@
   <param name="pwm" value="19" />
   <param name="encA" value="11" />
   <param name="encB" value="9" />
+  <remap from="current_position" to="phiB"/>
   </node>
 </launch>
