@@ -1,0 +1,6 @@
+devel_space: /home/augustus/Documents/mechatronics/devel
+install: false
+install_space: /home/augustus/Documents/mechatronics/install
+profile: default
+source_space: /home/augustus/Documents/mechatronics/src
+workspace: /home/augustus/Documents/mechatronics

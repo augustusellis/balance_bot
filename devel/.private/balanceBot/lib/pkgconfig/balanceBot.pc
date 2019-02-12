@@ -1,0 +1,8 @@
+prefix=/home/augustus/Documents/mechatronics/devel/.private/balanceBot
+
+Name: balanceBot
+Description: Description of balanceBot
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/augustus/Documents/mechatronics/devel/.private/balanceBot/lib 
+Requires: 
