@@ -1,9 +1,0 @@
-/home/augustus/Documents/mechatronics/build/catkin_tools_prebuild
-/home/augustus/Documents/mechatronics/devel/.private/catkin_tools_prebuild/setup.zsh /home/augustus/Documents/mechatronics/devel/./setup.zsh
-/home/augustus/Documents/mechatronics/devel/.private/catkin_tools_prebuild/setup.sh /home/augustus/Documents/mechatronics/devel/./setup.sh
-/home/augustus/Documents/mechatronics/devel/.private/catkin_tools_prebuild/_setup_util.py /home/augustus/Documents/mechatronics/devel/./_setup_util.py
-/home/augustus/Documents/mechatronics/devel/.private/catkin_tools_prebuild/env.sh /home/augustus/Documents/mechatronics/devel/./env.sh
-/home/augustus/Documents/mechatronics/devel/.private/catkin_tools_prebuild/setup.bash /home/augustus/Documents/mechatronics/devel/./setup.bash
-/home/augustus/Documents/mechatronics/devel/.private/catkin_tools_prebuild/lib/pkgconfig/catkin_tools_prebuild.pc /home/augustus/Documents/mechatronics/devel/lib/pkgconfig/catkin_tools_prebuild.pc
-/home/augustus/Documents/mechatronics/devel/.private/catkin_tools_prebuild/share/catkin_tools_prebuild/cmake/catkin_tools_prebuildConfig-version.cmake /home/augustus/Documents/mechatronics/devel/share/catkin_tools_prebuild/cmake/catkin_tools_prebuildConfig-version.cmake
-/home/augustus/Documents/mechatronics/devel/.private/catkin_tools_prebuild/share/catkin_tools_prebuild/cmake/catkin_tools_prebuildConfig.cmake /home/augustus/Documents/mechatronics/devel/share/catkin_tools_prebuild/cmake/catkin_tools_prebuildConfig.cmake
