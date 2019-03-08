@@ -21,9 +21,8 @@ class dc_motor(object):
         encA = rospy.get_param('~encA')
         encB = rospy.get_param('~encB')
         # Initiate motor object (could have re-made this, but I'm re-using the old one)
-        self.dcmotor = motor(pi,BI1,BI2,pwmB,enc2A,enc2B, encoder=True)
+        self.dcmotor = motor(pi, I1, I2,pwm,encA,encB, encoder=True)
         # run the node
-        self.runmotor()
 
     def runmotor(self):
         while not rospy.is_shutdown():
@@ -38,7 +37,8 @@ class dc_motor(object):
 def dc_motor_node():
     rospy.init_node('motor')
     motor = dc_motor()
-
+    motor.runmotor()
+    
 if __name__ == '__main__':
     try:
         dc_motor_node()
