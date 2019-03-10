@@ -16,7 +16,7 @@ class imu_node(object):
         self.imu_msg = Imu()
         self.theta = 0
         # Get Specific Parameters from ros parameter server
-        #self.pi = pigpio.pi()
+        self.pi = pigpio.pi()
         self.mpu_vio = rospy.get_param('~mpu_vio')
         # create filter
         self.cfilt = ComplementaryFilter(alpha=0.98, rollangle=0, angleOffset=0.730238683)
@@ -25,17 +25,15 @@ class imu_node(object):
         self.previous_time = 0
         # Initiate imu object
         self.mpu = MPU6050(0x68, self.mpu_vio)
-        # rate object
-        self.r = rospy.Rate(300)
 
     def run(self):
         while not rospy.is_shutdown():
             # timing
-            self.previous_time = self.current_time
-            self.current_time = rospy.Time.now().nsecs
+            self.previous_time = current_time
+            current_time = rospy.Time.now().nsecs
             #make sensor_msgs/imu message
             gx, gy, gz, _, ax, ay, az = self.mpu.get_all_data()
-            self.cfilt.update([gx,gy,gz,ax,ay,az], 10**(-9)*(self.current_time-self.previous_time))
+            self.cfilt.update([gx,gy,gz,ax,ay,az], 10**(-9)*(current_time-previous_time)
             self.imu_msg.angular_velocity.x = gx
             self.imu_msg.angular_velocity.y = gy
             self.imu_msg.angular_velocity.z = gz
@@ -44,7 +42,6 @@ class imu_node(object):
             self.imu_msg.linear_acceleration.z = az
 
             self.pos_pub.publish(self.cfilt.rollangle)
-            self.r.sleep()
 
 def run_node():
     rospy.init_node('imu')
